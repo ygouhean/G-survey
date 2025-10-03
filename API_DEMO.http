@@ -1,0 +1,340 @@
+###
+# G-Survey API Demo
+# Utilisez ce fichier avec l'extension REST Client de VSCode
+# ou importez-le dans Postman/Insomnia
+###
+
+@baseUrl = http://localhost:5000/api
+@token = your_jwt_token_here
+
+### Variables
+@adminEmail = admin@gsurvey.com
+@adminPassword = Admin@123
+
+###############################################
+# AUTHENTIFICATION
+###############################################
+
+### 1. Login Admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+### 2. Get Current User
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### 3. Register New User (Admin only)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "email": "jean.dupont@example.com",
+  "password": "Password123",
+  "firstName": "Jean",
+  "lastName": "Dupont",
+  "role": "field_agent",
+  "phone": "+33612345678"
+}
+
+### 4. Update Profile
+PUT {{baseUrl}}/auth/update-profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "firstName": "Jean",
+  "lastName": "Dupont",
+  "phone": "+33698765432"
+}
+
+### 5. Change Password
+PUT {{baseUrl}}/auth/change-password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "currentPassword": "Password123",
+  "newPassword": "NewPassword456"
+}
+
+### 6. Get All Users (Admin only)
+GET {{baseUrl}}/auth/users
+Authorization: Bearer {{token}}
+
+###############################################
+# SONDAGES
+###############################################
+
+### 7. Create Survey
+POST {{baseUrl}}/surveys
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Enquête de Satisfaction Client 2024",
+  "description": "Évaluez votre expérience avec nos services",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "text",
+      "label": "Quel est votre nom ?",
+      "required": true,
+      "order": 0
+    },
+    {
+      "id": "q2",
+      "type": "email",
+      "label": "Votre email ?",
+      "required": true,
+      "order": 1
+    },
+    {
+      "id": "q3",
+      "type": "nps",
+      "label": "Sur une échelle de 0 à 10, recommanderiez-vous notre service ?",
+      "required": true,
+      "validation": {
+        "min": 0,
+        "max": 10
+      },
+      "order": 2
+    },
+    {
+      "id": "q4",
+      "type": "csat",
+      "label": "Comment évaluez-vous votre satisfaction globale ?",
+      "required": true,
+      "validation": {
+        "min": 1,
+        "max": 5
+      },
+      "order": 3
+    },
+    {
+      "id": "q5",
+      "type": "multiple_choice",
+      "label": "Comment nous avez-vous connu ?",
+      "required": false,
+      "options": ["Bouche à oreille", "Publicité", "Recherche en ligne", "Réseaux sociaux", "Autre"],
+      "order": 4
+    }
+  ],
+  "targetResponses": 100,
+  "startDate": "2024-01-01",
+  "endDate": "2024-12-31",
+  "status": "active",
+  "settings": {
+    "allowAnonymous": false,
+    "requireGeolocation": true,
+    "allowOfflineSubmission": true,
+    "showProgressBar": true,
+    "randomizeQuestions": false
+  }
+}
+
+### 8. Get All Surveys
+GET {{baseUrl}}/surveys
+Authorization: Bearer {{token}}
+
+### 9. Get Survey by ID
+@surveyId = 65a1b2c3d4e5f6g7h8i9j0k1
+GET {{baseUrl}}/surveys/{{surveyId}}
+Authorization: Bearer {{token}}
+
+### 10. Update Survey
+PUT {{baseUrl}}/surveys/{{surveyId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Enquête de Satisfaction Client 2024 - Mise à jour",
+  "targetResponses": 150
+}
+
+### 11. Update Survey Status
+PUT {{baseUrl}}/surveys/{{surveyId}}/status
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "status": "paused"
+}
+
+### 12. Assign Survey to Users
+POST {{baseUrl}}/surveys/{{surveyId}}/assign
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userIds": ["65a1b2c3d4e5f6g7h8i9j0k2", "65a1b2c3d4e5f6g7h8i9j0k3"]
+}
+
+### 13. Duplicate Survey
+POST {{baseUrl}}/surveys/{{surveyId}}/duplicate
+Authorization: Bearer {{token}}
+
+### 14. Delete Survey (Admin only)
+DELETE {{baseUrl}}/surveys/{{surveyId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# RÉPONSES
+###############################################
+
+### 15. Submit Response
+POST {{baseUrl}}/responses
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "survey": "{{surveyId}}",
+  "answers": [
+    {
+      "questionId": "q1",
+      "questionType": "text",
+      "value": "Jean Dupont"
+    },
+    {
+      "questionId": "q2",
+      "questionType": "email",
+      "value": "jean.dupont@example.com"
+    },
+    {
+      "questionId": "q3",
+      "questionType": "nps",
+      "value": 9
+    },
+    {
+      "questionId": "q4",
+      "questionType": "csat",
+      "value": 4
+    },
+    {
+      "questionId": "q5",
+      "questionType": "multiple_choice",
+      "value": "Bouche à oreille"
+    }
+  ],
+  "location": {
+    "type": "Point",
+    "coordinates": [2.3522, 48.8566]
+  },
+  "deviceInfo": {
+    "userAgent": "Mozilla/5.0...",
+    "platform": "Win32",
+    "online": true
+  },
+  "metadata": {
+    "startTime": "2024-01-15T10:00:00.000Z",
+    "endTime": "2024-01-15T10:05:00.000Z",
+    "duration": 300
+  }
+}
+
+### 16. Get All Responses
+GET {{baseUrl}}/responses
+Authorization: Bearer {{token}}
+
+### 17. Get Responses with Filters
+GET {{baseUrl}}/responses?surveyId={{surveyId}}&startDate=2024-01-01&endDate=2024-12-31
+Authorization: Bearer {{token}}
+
+### 18. Get Survey Responses
+GET {{baseUrl}}/responses/survey/{{surveyId}}
+Authorization: Bearer {{token}}
+
+### 19. Get Map Responses (with geolocation)
+GET {{baseUrl}}/responses/survey/{{surveyId}}/map
+Authorization: Bearer {{token}}
+
+### 20. Bulk Submit Responses (Offline sync)
+POST {{baseUrl}}/responses/bulk
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "responses": [
+    {
+      "survey": "{{surveyId}}",
+      "answers": [
+        {
+          "questionId": "q3",
+          "questionType": "nps",
+          "value": 8
+        }
+      ],
+      "location": {
+        "type": "Point",
+        "coordinates": [2.2945, 48.8584]
+      }
+    },
+    {
+      "survey": "{{surveyId}}",
+      "answers": [
+        {
+          "questionId": "q3",
+          "questionType": "nps",
+          "value": 10
+        }
+      ],
+      "location": {
+        "type": "Point",
+        "coordinates": [2.3488, 48.8534]
+      }
+    }
+  ]
+}
+
+###############################################
+# ANALYTICS
+###############################################
+
+### 21. Get Survey Analytics
+GET {{baseUrl}}/analytics/survey/{{surveyId}}?period=month
+Authorization: Bearer {{token}}
+
+### 22. Get Dashboard Statistics
+GET {{baseUrl}}/analytics/dashboard
+Authorization: Bearer {{token}}
+
+### 23. Compare Surveys
+@surveyId2 = 65a1b2c3d4e5f6g7h8i9j0k5
+GET {{baseUrl}}/analytics/comparison?surveyIds={{surveyId}},{{surveyId2}}
+Authorization: Bearer {{token}}
+
+###############################################
+# EXPORTS
+###############################################
+
+### 24. Export to Excel
+GET {{baseUrl}}/exports/survey/{{surveyId}}/excel
+Authorization: Bearer {{token}}
+
+### 25. Export to CSV
+GET {{baseUrl}}/exports/survey/{{surveyId}}/csv
+Authorization: Bearer {{token}}
+
+### 26. Export to JSON
+GET {{baseUrl}}/exports/survey/{{surveyId}}/json
+Authorization: Bearer {{token}}
+
+###############################################
+# HEALTH CHECK
+###############################################
+
+### 27. API Health Check
+GET {{baseUrl}}/health
+
+###
+# Notes d'utilisation :
+# 1. Remplacez {{token}} par votre JWT après le login
+# 2. Remplacez {{surveyId}} par un ID de sondage valide
+# 3. Utilisez l'extension REST Client de VSCode pour exécuter ces requêtes
+# 4. Ou importez ce fichier dans Postman/Insomnia
+###
