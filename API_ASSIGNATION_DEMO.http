@@ -1,0 +1,88 @@
+### API d'Assignation de Sondages - Tests
+### Remplacez les valeurs entre {} par vos valeurs réelles
+
+@baseUrl = http://localhost:3000/api
+@token = {YOUR_JWT_TOKEN}
+@surveyId = {SURVEY_ID}
+@userId1 = {USER_ID_1}
+@userId2 = {USER_ID_2}
+
+###############################################
+# 1. Obtenir les utilisateurs assignables
+###############################################
+
+GET {{baseUrl}}/surveys/{{surveyId}}/assignable-users
+Authorization: Bearer {{token}}
+
+###############################################
+# 2. Assigner des utilisateurs à un sondage
+###############################################
+
+POST {{baseUrl}}/surveys/{{surveyId}}/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userIds": [
+    "{{userId1}}",
+    "{{userId2}}"
+  ]
+}
+
+###############################################
+# 3. Retirer des utilisateurs d'un sondage
+###############################################
+
+DELETE {{baseUrl}}/surveys/{{surveyId}}/unassign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userIds": [
+    "{{userId1}}"
+  ]
+}
+
+###############################################
+# 4. Obtenir un sondage avec ses assignations
+###############################################
+
+GET {{baseUrl}}/surveys/{{surveyId}}
+Authorization: Bearer {{token}}
+
+###############################################
+# 5. Obtenir tous les sondages (filtrés par rôle)
+###############################################
+
+GET {{baseUrl}}/surveys
+Authorization: Bearer {{token}}
+
+###############################################
+# Test d'erreur : Assigner sans userIds
+###############################################
+
+POST {{baseUrl}}/surveys/{{surveyId}}/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userIds": []
+}
+
+###############################################
+# Test d'erreur : Assigner avec des IDs invalides
+###############################################
+
+POST {{baseUrl}}/surveys/{{surveyId}}/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "userIds": [
+    "invalid-uuid-1",
+    "invalid-uuid-2"
+  ]
+}
+
+
+
