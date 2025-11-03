@@ -220,3 +220,4 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
 
 
 
+

@@ -20,3 +20,4 @@ Placez vos images dans ce dossier :
 
 **Note** : Pour les fichiers uploadés par les utilisateurs (réponses aux sondages), utilisez Cloudinary (configuré dans `server/services/cloudinary.js`).
 
+

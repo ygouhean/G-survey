@@ -46,3 +46,4 @@ BEGIN
     RAISE NOTICE '✅ Migration terminée : type user_registered ajouté aux notifications';
 END $$;
 
+

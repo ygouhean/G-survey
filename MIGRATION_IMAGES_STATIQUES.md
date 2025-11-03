@@ -109,3 +109,4 @@ Les uploads utilisateurs utiliseront Cloudinary automatiquement une fois les var
 **Date de migration** : 3 novembre 2025  
 **Statut** : ✅ Code prêt, migration des fichiers manuelle requise
 
+

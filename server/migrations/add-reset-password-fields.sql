@@ -21,3 +21,4 @@ BEGIN
     RAISE NOTICE '✅ Migration terminée : Champs de réinitialisation de mot de passe ajoutés';
 END $$;
 
+
