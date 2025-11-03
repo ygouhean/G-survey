@@ -39,7 +39,7 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen bg-cover bg-center bg-no-repeat relative"
          style={{
-           backgroundImage: 'url(/uploads/img/background.png)'
+           backgroundImage: 'url(/images/background.png)'
          }}>
       
       
@@ -50,7 +50,7 @@ export default function ForgotPassword() {
             <div className="text-center mb-8">
               <Link to="/" className="flex items-center justify-center mb-4 hover:opacity-80 transition-opacity">
                 <img 
-                src="/uploads/img/logolight.png" alt="G-Survey Logo" 
+                src="/images/logolight.png" alt="G-Survey Logo" 
                 className="w-10 h-10 object-cover rounded-full" 
                 />
                 <h1 className="text-3xl font-bold text-primary-600 ml-2">G-Survey</h1>

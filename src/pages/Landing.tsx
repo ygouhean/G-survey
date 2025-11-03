@@ -52,7 +52,7 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <img 
-                src="/uploads/img/logolight.png" 
+                src="/images/logolight.png" 
                 alt="G-Survey Logo" 
                 className="w-14 h-14 object-cover rounded-full" 
                 />
@@ -107,14 +107,14 @@ export default function Landing() {
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
                 <div className="aspect-video bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg overflow-hidden relative flex items-center justify-center">
                   <img 
-                      src="/uploads/img/gsurvey.png" 
+                      src="/images/gsurvey.png" 
                       alt="map" 
                       className="absolute inset-0 w-[600px] h-[400px]object-cover opacity-100" />
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-4">
                   <div className="relative rounded-lg pt-20 pb-19 text-center overflow-hidden object-cover">
                     <img 
-                      src="/uploads/img/agent.jpg" 
+                      src="/images/agent.jpg" 
                       alt="map" 
                       className="absolute inset-0  w-[600px] h-[125px] object-cover opacity-100"
                       />
@@ -123,14 +123,14 @@ export default function Landing() {
                   
                   <div className="relative rounded-lg p-9 text-center overflow-hidden">
                     <img 
-                      src="/uploads/img/geoloc.png" 
+                      src="/images/geoloc.png" 
                       alt="map" 
                       className="absolute inset-0  w-[600px] h-[125px] object-cover opacity-100" />
                     <p className="text-xs font-medium text-gray-700">Géolocalisation</p>
                   </div>
                   <div className="relative rounded-lg p-4 text-center overflow-hidden">
                     <img 
-                      src="/uploads/img/geodata.png" 
+                      src="/images/geodata.png" 
                       alt="map" 
                       className="absolute inset-0  w-[600px] h-[125px] object-cover opacity-100" />
                     <p className="text-xs font-medium text-gray-700">Analytics</p>
@@ -211,7 +211,7 @@ export default function Landing() {
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
                     <img 
-                    src="/uploads/img/environnement.png" 
+                    src="/images/environnement.png" 
                     alt="image de l'ong" 
                     className="w-20 h-20 object-cover rounded-full" 
                     />
@@ -237,7 +237,7 @@ export default function Landing() {
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
                     <img 
-                    src="/uploads/img/bank.png" 
+                    src="/images/bank.png" 
                     alt="image bank capitalis" 
                     className="w-20 h-20 object-cover rounded-full" 
                     />
@@ -263,7 +263,7 @@ export default function Landing() {
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
                     <img 
-                    src="/uploads/img/ong.png" 
+                    src="/images/ong.png" 
                     alt="image de l'ong" 
                     className="w-20 h-20 object-cover rounded-full" 
                     />
@@ -315,7 +315,7 @@ export default function Landing() {
             <div>
               <div className="flex items-center mb-4">
                 <img 
-                src="/uploads/img/logolight.png" 
+                src="/images/logolight.png" 
                 alt="G-Survey Logo" 
                 className="w-14 h-14  rounded-full object-cover" 
                 />

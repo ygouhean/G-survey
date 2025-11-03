@@ -3,25 +3,11 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const cloudinary = require('../services/cloudinary');
 const { protect } = require('../middleware/auth');
 
-// Configuration de stockage pour multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../../uploads');
-    // Créer le dossier uploads s'il n'existe pas
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    // Générer un nom unique pour éviter les conflits
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
-});
+// Stockage en mémoire: on envoie ensuite vers Cloudinary
+const storage = multer.memoryStorage();
 
 // Configuration multer avec limites
 const upload = multer({ 
@@ -55,20 +41,43 @@ router.post('/files', protect, upload.array('files', 10), async (req, res, next)
       });
     }
 
-    // Formater les informations des fichiers uploadés
-    const fileUrls = req.files.map(file => ({
-      filename: file.filename,
-      originalName: file.originalname,
-      url: `/uploads/${file.filename}`,
-      size: file.size,
-      mimetype: file.mimetype,
-      uploadedAt: new Date()
-    }));
+    // Upload vers Cloudinary (promesses)
+    const uploads = await Promise.all(
+      req.files.map(file => new Promise((resolve, reject) => {
+        const folder = 'g-survey/uploads';
+        const resource_type = file.mimetype.startsWith('video') ? 'video' : (file.mimetype === 'application/pdf' ? 'raw' : 'auto');
+
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder,
+            resource_type,
+            filename_override: path.parse(file.originalname).name,
+            use_filename: true,
+            unique_filename: true,
+            overwrite: false,
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve({
+              originalName: file.originalname,
+              url: result.secure_url,
+              public_id: result.public_id,
+              resource_type: result.resource_type,
+              bytes: result.bytes,
+              format: result.format,
+              uploadedAt: new Date()
+            });
+          }
+        );
+
+        uploadStream.end(file.buffer);
+      }))
+    );
 
     res.json({
       success: true,
-      files: fileUrls,
-      count: fileUrls.length
+      files: uploads,
+      count: uploads.length
     });
   } catch (error) {
     console.error('Erreur upload:', error);
@@ -83,24 +92,14 @@ router.post('/files', protect, upload.array('files', 10), async (req, res, next)
 // @route   DELETE /api/uploads/file/:filename
 // @desc    Delete a specific file
 // @access  Private
-router.delete('/file/:filename', protect, async (req, res, next) => {
+router.delete('/file/:publicId', protect, async (req, res, next) => {
   try {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, '../../uploads', filename);
-
-    // Vérifier si le fichier existe
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      res.json({
-        success: true,
-        message: 'Fichier supprimé avec succès'
-      });
-    } else {
-      res.status(404).json({
-        success: false,
-        message: 'Fichier non trouvé'
-      });
+    const publicId = req.params.publicId;
+    const result = await cloudinary.uploader.destroy(publicId, { invalidate: true, resource_type: 'auto' });
+    if (result.result === 'not found') {
+      return res.status(404).json({ success: false, message: 'Fichier non trouvé' });
     }
+    res.json({ success: true, message: 'Fichier supprimé avec succès' });
   } catch (error) {
     console.error('Erreur suppression:', error);
     res.status(500).json({

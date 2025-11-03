@@ -53,9 +53,9 @@ class UploadService {
    * @param filename - Name of the file to delete
    * @returns Promise
    */
-  async deleteFile(filename: string): Promise<void> {
+  async deleteFile(publicId: string): Promise<void> {
     try {
-      await api.delete(`/uploads/file/${filename}`)
+      await api.delete(`/uploads/file/${publicId}`)
     } catch (error: any) {
       console.error('Erreur suppression:', error)
       throw new Error(
@@ -71,8 +71,8 @@ class UploadService {
    * @returns Full URL
    */
   getFileUrl(fileUrl: string): string {
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-    return `${baseURL}${fileUrl}`
+    // Avec Cloudinary, l'URL retournée est absolue
+    return fileUrl
   }
 
   /**
@@ -85,7 +85,7 @@ class UploadService {
       value && 
       typeof value === 'object' && 
       'url' in value && 
-      'filename' in value
+      'public_id' in value
     )
   }
 

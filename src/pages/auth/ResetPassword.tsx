@@ -81,7 +81,7 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-cover bg-center bg-no-repeat relative"
          style={{
-           backgroundImage: 'url(/uploads/img/background.png)'
+           backgroundImage: 'url(/images/background.png)'
          }}>
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/90 to-primary-700/90"></div>
@@ -91,8 +91,12 @@ export default function ResetPassword() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
             {/* Logo */}
             <div className="text-center mb-8">
-              <Link to="/uploads/img/logolight.png" className="flex items-center justify-center mb-4 hover:opacity-80 transition-opacity rounded-full">
-                <MapPin className="w-10 h-10 text-primary-600 rounded-full" />
+              <Link to="/" className="flex items-center justify-center mb-4 hover:opacity-80 transition-opacity rounded-full">
+                <img 
+                  src="/images/logolight.png" 
+                  alt="G-Survey Logo" 
+                  className="w-10 h-10 object-cover rounded-full" 
+                />
                 <h1 className="text-3xl font-bold text-primary-600 ml-2">G-Survey</h1>
               </Link>
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
