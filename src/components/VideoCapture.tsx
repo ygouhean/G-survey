@@ -70,7 +70,6 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
       }
 
       // Préparer le MediaRecorder avec détection du meilleur format pour le navigateur
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
       
       let mimeType = 'video/webm'
