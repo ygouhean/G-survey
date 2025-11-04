@@ -56,31 +56,37 @@ export default function Sidebar({ open }: SidebarProps) {
   )
 
   return (
-    <aside className={`${open ? 'w-64' : 'w-20'} bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300`}>
+    <aside className={`
+      ${open ? 'w-64' : 'w-20'} 
+      bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 
+      transition-all duration-300 h-full
+      shadow-lg lg:shadow-none
+    `}>
       <div className="h-full flex flex-col">
         {/* Logo */}
-        <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700">
-          <h1 className={`font-bold text-primary-600 ${open ? 'text-2xl' : 'text-xl'}`}>
+        <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700 px-4">
+          <h1 className={`font-bold text-primary-600 ${open ? 'text-xl sm:text-2xl' : 'text-lg sm:text-xl'} truncate`}>
             {open ? 'G-Survey' : 'GS'}
           </h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+        <nav className="flex-1 overflow-y-auto p-2 sm:p-4 space-y-1 sm:space-y-2">
           {filteredNavItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={`
-                flex items-center gap-3 px-4 py-3 rounded-lg transition-all
+                flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 rounded-lg transition-all
+                text-sm sm:text-base
                 ${isActive(item.path)
                   ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }
               `}
             >
-              <span className="text-2xl">{item.icon}</span>
-              {open && <span className="font-medium">{item.name}</span>}
+              <span className="text-xl sm:text-2xl flex-shrink-0">{item.icon}</span>
+              {open && <span className="font-medium truncate">{item.name}</span>}
             </Link>
           ))}
         </nav>

@@ -48,26 +48,26 @@ export default function Landing() {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Navigation Header */}
       <nav className="bg-white dark:bg-gray-800 shadow-md fixed w-full top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center">
               <img 
                 src="/images/logolight.png" 
                 alt="G-Survey Logo" 
-                className="w-14 h-14 object-cover rounded-full" 
+                className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 object-cover rounded-full" 
                 />
-              <span className="ml-2 text-2xl font-bold text-primary-900">G-Survey</span>
+              <span className="ml-1 sm:ml-2 text-lg sm:text-xl md:text-2xl font-bold text-primary-900">G-Survey</span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button
                 onClick={() => navigate('/login')}
-                className="px-6 py-2 text-primary-900 hover:from-primary-900 font-medium transition-colors"
+                className="px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 text-sm sm:text-base text-primary-900 hover:from-primary-900 font-medium transition-colors"
               >
                 Se connecter
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="px-6 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-500 font-medium transition-colors shadow-md"
+                className="px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-500 font-medium transition-colors shadow-md text-sm sm:text-base"
               >
                 S'inscrire
               </button>
@@ -77,27 +77,27 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-900 to-primary-900">
+      <section className="pt-20 sm:pt-24 pb-12 sm:pb-16 px-3 sm:px-4 md:px-6 lg:px-8 bg-gradient-to-br from-primary-900 to-primary-900">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="text-white">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="text-white text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
                 Transformez Votre Collecte de Données de Terrain
               </h1>
-              <p className="text-xl mb-8 text-primary-50">
+              <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 text-primary-50">
                 G-Survey est la solution complète pour la gestion de sondages géolocalisés. 
                 Collectez, analysez et visualisez vos données en temps réel.
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={() => navigate('/register')}
-                  className="px-8 py-4 bg-white text-primary-900 border-2 hover:border-white-900 rounded-lg hover:bg-blue-900 hover:text-white font-semibold transition-colors shadow-lg"
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-primary-900 border-2 hover:border-white-900 rounded-lg hover:bg-blue-900 hover:text-white font-semibold transition-colors shadow-lg text-sm sm:text-base"
                 >
                   Commencer Gratuitement
                 </button>
                 <button
                   onClick={() => navigate('/login')}
-                  className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg hover:bg-white hover:text-primary-900 font-semibold transition-colors"
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-white text-white rounded-lg hover:bg-white hover:text-primary-900 font-semibold transition-colors text-sm sm:text-base"
                 >
                   Démo
                 </button>
@@ -143,9 +143,9 @@ export default function Landing() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50 dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="py-12 sm:py-16 bg-gray-50 dark:bg-gray-800">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
                 <div className="flex justify-center text-primary-900 mb-4">
@@ -164,18 +164,18 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-12 sm:py-16 px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Fonctionnalités Principales
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
               Une plateforme complète avec tous les outils dont vous avez besoin pour 
               réussir vos collectes de données sur le terrain.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {features.map((feature, index) => (
               <div
                 key={index}
@@ -195,17 +195,17 @@ export default function Landing() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
+      <section className="py-12 sm:py-16 px-3 sm:px-4 md:px-6 lg:px-8 bg-gray-50 dark:bg-gray-800">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="text-center mb-8 sm:mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
               Ils Nous Font Confiance
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 px-4">
               Découvrez ce que nos clients satisfaits disent de G-Survey
             </p>
           </div >
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
              <div>
               <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6">
                 <div className="flex items-center mb-4">
@@ -290,18 +290,18 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-900 to-primary-900">
+      <section className="py-12 sm:py-16 px-3 sm:px-4 md:px-6 lg:px-8 bg-gradient-to-br from-primary-900 to-primary-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6">
             Prêt à Commencer ?
           </h2>
-          <p className="text-xl text-primary-50 mb-8">
+          <p className="text-base sm:text-lg md:text-xl text-primary-50 mb-6 sm:mb-8 px-4">
             Rejoignez des centaines d'organisations qui utilisent déjà G-Survey pour 
             améliorer leur collecte de données.
           </p>
           <button
             onClick={() => navigate('/register')}
-            className="px-8 py-4 bg-white text-primary-900 rounded-lg hover:bg-gray-100 font-semibold transition-colors shadow-lg text-lg"
+            className="px-6 sm:px-8 py-3 sm:py-4 bg-white text-primary-900 rounded-lg hover:bg-gray-100 font-semibold transition-colors shadow-lg text-sm sm:text-base md:text-lg"
           >
             Créer un Compte Gratuit
           </button>
@@ -309,9 +309,9 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+      <footer className="bg-gray-900 text-white py-8 sm:py-12 px-3 sm:px-4 md:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
             <div>
               <div className="flex items-center mb-4">
                 <img 
@@ -337,7 +337,7 @@ export default function Landing() {
               <h3 className="font-semibold mb-4">Entreprise</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">À propos</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="https://blog.gsurvey.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>

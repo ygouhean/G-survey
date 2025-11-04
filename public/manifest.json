@@ -1,0 +1,43 @@
+{
+  "name": "G-Survey - Plateforme de Sondages",
+  "short_name": "G-Survey",
+  "description": "Plateforme complète de sondages géolocalisés pour professionnels",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1e40af",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/logolight.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/logolight.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Créer un sondage",
+      "short_name": "Créer",
+      "description": "Créer un nouveau sondage",
+      "url": "/surveys/create",
+      "icons": [{ "src": "/images/logolight.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "description": "Accéder au tableau de bord",
+      "url": "/dashboard",
+      "icons": [{ "src": "/images/logolight.png", "sizes": "96x96" }]
+    }
+  ]
+}
+
