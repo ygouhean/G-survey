@@ -855,14 +855,21 @@ router.delete('/users/:id', protect, async (req, res, next) => {
 });
 
 // @route   GET /api/auth/agents
-// @desc    Get all field agents (for supervisors and admins)
+// @desc    Get all field agents (for supervisors and admins), or field agents + supervisors (for admins)
 // @access  Private
 router.get('/agents', protect, async (req, res, next) => {
   try {
-    let whereClause = {
-      role: 'field_agent',
+    let whereClause: any = {
       isActive: true
     };
+
+    // Admins can see field_agents and supervisors
+    if (req.user.role === 'admin') {
+      whereClause.role = { [Op.in]: ['field_agent', 'supervisor'] };
+    } else {
+      // Supervisors only see field_agents from their team
+      whereClause.role = 'field_agent';
+    }
 
     // Supervisors only see agents from their team
     if (req.user.role === 'supervisor') {

@@ -998,7 +998,7 @@ export default function SurveyRespond() {
                         📁 Choisir un fichier
                         <input
                           type="file"
-                          accept="video/*"
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-msvideo,video/3gpp,video/x-matroska"
                           multiple={question.fileConfig?.multiple}
                           onChange={(e) => {
                             const files = Array.from(e.target.files || [])
