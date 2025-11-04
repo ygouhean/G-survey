@@ -530,19 +530,57 @@ router.get('/survey/:surveyId/complete', protect, canAccessSurvey, async (req, r
               let fileIndex = 1;
               
               for (const file of answer.value) {
-                if (file && typeof file === 'object' && file.filename) {
-                  const sourcePath = path.join(filesDir, file.filename);
+                try {
+                  let fileUrl = null;
+                  let fileName = null;
                   
-                  // Vérifier si le fichier existe
-                  if (fs.existsSync(sourcePath)) {
-                    // Ajouter le fichier au ZIP avec un chemin organisé
-                    const zipPath = `reponse_${responseIndex}/question_${questionIndex}_${q.label.substring(0, 30).replace(/[^a-z0-9]/gi, '_')}/${file.originalName}`;
-                    archive.file(sourcePath, { name: zipPath });
-                    
-                    // Ajouter le chemin relatif dans le Excel
-                    fileLinks.push(`Voir: ${zipPath}`);
-                    fileIndex++;
+                  // Gérer différents formats de stockage
+                  if (file && typeof file === 'object') {
+                    // Format Cloudinary (avec url)
+                    if (file.url) {
+                      fileUrl = file.url;
+                      fileName = file.originalName || file.originalname || `file_${fileIndex}.${file.format || 'bin'}`;
+                    }
+                    // Format avec public_id (Cloudinary)
+                    else if (file.public_id) {
+                      // Générer l'URL depuis Cloudinary
+                      fileUrl = cloudinary.url(file.public_id, {
+                        resource_type: file.resource_type || 'auto',
+                        secure: true
+                      });
+                      fileName = file.originalName || file.originalname || `${file.public_id}.${file.format || 'bin'}`;
+                    }
+                  } else if (typeof file === 'string') {
+                    // Format string (URL directe)
+                    fileUrl = file;
+                    const urlParts = file.split('/');
+                    fileName = urlParts[urlParts.length - 1] || `file_${fileIndex}.bin`;
                   }
+                  
+                  if (fileUrl) {
+                    // Télécharger le fichier temporairement
+                    const safeFileName = fileName.replace(/[^a-z0-9._-]/gi, '_');
+                    const tempFilePath = path.join(tempFilesDir, `temp_${response.id}_${questionIndex}_${fileIndex}_${Date.now()}_${safeFileName}`);
+                    tempFiles.push(tempFilePath);
+                    
+                    try {
+                      await downloadFile(fileUrl, tempFilePath);
+                      
+                      // Ajouter le fichier au ZIP avec un chemin organisé
+                      const safeQuestionLabel = q.label.substring(0, 30).replace(/[^a-z0-9]/gi, '_');
+                      const zipPath = `reponse_${responseIndex}/question_${questionIndex}_${safeQuestionLabel}/${safeFileName}`;
+                      archive.file(tempFilePath, { name: zipPath });
+                      
+                      // Ajouter le nom du fichier dans le Excel
+                      fileLinks.push(safeFileName);
+                      fileIndex++;
+                    } catch (downloadError) {
+                      console.error(`Erreur téléchargement fichier ${fileUrl}:`, downloadError);
+                      fileLinks.push(`${safeFileName} (erreur téléchargement)`);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Erreur traitement fichier:', error);
                 }
               }
               
