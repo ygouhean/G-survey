@@ -16,6 +16,7 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "archiver": "^7.0.1",
+    "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.1",
     "cloudinary": "^1.41.0",
