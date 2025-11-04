@@ -103,25 +103,41 @@ const connectDB = async () => {
     // Synchroniser les modèles avec la base de données
     // En production, on utilise sync avec force: false pour créer les tables si elles n'existent pas
     // mais sans écraser les données existantes
+    let syncSuccess = false;
     if (process.env.NODE_ENV === 'production') {
       // En production, on synchronise seulement si les tables n'existent pas
       // Cela évite d'écraser les données existantes
       try {
         await sequelize.sync({ alter: false, force: false });
         console.log('✅ Database models synchronized (production mode)');
+        syncSuccess = true;
       } catch (syncError) {
         console.error('⚠️  Erreur lors de la synchronisation (production):', syncError.message);
-        // Ne pas bloquer le démarrage si la synchronisation échoue
-        // Les tables peuvent déjà exister
+        console.error('   Détails:', syncError);
+        // Vérifier si les tables existent déjà en essayant une requête simple
+        try {
+          await sequelize.query('SELECT 1 FROM users LIMIT 1');
+          console.log('✅ Les tables semblent déjà exister');
+          syncSuccess = true;
+        } catch (checkError) {
+          console.error('❌ Les tables n\'existent pas et la synchronisation a échoué');
+          console.error('   Cela peut être dû à des permissions insuffisantes ou à un problème de connexion');
+          syncSuccess = false;
+        }
       }
     } else {
       // En développement, synchronisation normale
       await sequelize.sync({ alter: false });
       console.log('✅ Database models synchronized');
+      syncSuccess = true;
     }
 
-    // Créer l'utilisateur admin par défaut
-    await createDefaultAdmin();
+    // Créer l'utilisateur admin par défaut seulement si la synchronisation a réussi
+    if (syncSuccess) {
+      await createDefaultAdmin();
+    } else {
+      console.warn('⚠️  Création de l\'admin par défaut ignorée (synchronisation échouée)');
+    }
   } catch (error) {
     console.error(`❌ Error connecting to PostgreSQL: ${error.message}`);
     
@@ -170,6 +186,17 @@ const connectDB = async () => {
 
 const createDefaultAdmin = async () => {
   try {
+    // Vérifier d'abord que la table users existe
+    try {
+      await sequelize.query('SELECT 1 FROM users LIMIT 1');
+    } catch (tableError) {
+      if (tableError.message && tableError.message.includes('does not exist')) {
+        console.error('❌ La table users n\'existe pas. Impossible de créer l\'admin par défaut.');
+        return;
+      }
+      throw tableError;
+    }
+
     const User = require('../models/User');
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@gsurvey.com';
     
@@ -185,13 +212,20 @@ const createDefaultAdmin = async () => {
         email: adminEmail,
         password: hashedPassword,
         role: 'admin',
-        isActive: true
+        isActive: true,
+        username: 'admin' // Ajouter un username par défaut
       });
       
       console.log(`👤 Default admin created: ${adminEmail}`);
+    } else {
+      console.log(`👤 Admin already exists: ${adminEmail}`);
     }
   } catch (error) {
-    console.error(`Error creating default admin: ${error.message}`);
+    console.error(`❌ Error creating default admin: ${error.message}`);
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+    // Ne pas faire échouer le démarrage du serveur si la création de l'admin échoue
   }
 };
 
