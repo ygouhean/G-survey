@@ -7,6 +7,10 @@ const XLSX = require('xlsx');
 const archiver = require('archiver');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
+const http = require('http');
+const cloudinary = require('../services/cloudinary');
+const { promisify } = require('util');
 
 // @route   GET /api/exports/survey/:surveyId/excel
 // @desc    Export survey responses to Excel
@@ -444,8 +448,49 @@ router.get('/survey/:surveyId/complete', protect, canAccessSurvey, async (req, r
     excelData.push(headers);
 
     // Rows et collecte des fichiers
-    const filesDir = path.join(__dirname, '../../uploads');
+    const tempFilesDir = path.join(__dirname, '../../temp_export_files');
+    
+    // Créer le dossier temporaire s'il n'existe pas
+    if (!fs.existsSync(tempFilesDir)) {
+      fs.mkdirSync(tempFilesDir, { recursive: true });
+    }
+    
     let responseIndex = 1;
+    const tempFiles = []; // Pour nettoyer après l'export
+
+    // Fonction pour télécharger un fichier depuis Cloudinary ou URL
+    const downloadFile = async (url, filepath) => {
+      return new Promise((resolve, reject) => {
+        const protocol = url.startsWith('https') ? https : http;
+        const file = fs.createWriteStream(filepath);
+        
+        protocol.get(url, (response) => {
+          if (response.statusCode === 301 || response.statusCode === 302) {
+            // Suivre les redirections
+            return downloadFile(response.headers.location, filepath).then(resolve).catch(reject);
+          }
+          
+          if (response.statusCode !== 200) {
+            file.close();
+            fs.unlinkSync(filepath);
+            return reject(new Error(`Erreur HTTP: ${response.statusCode}`));
+          }
+          
+          response.pipe(file);
+          
+          file.on('finish', () => {
+            file.close();
+            resolve();
+          });
+        }).on('error', (err) => {
+          file.close();
+          if (fs.existsSync(filepath)) {
+            fs.unlinkSync(filepath);
+          }
+          reject(err);
+        });
+      });
+    };
 
     for (const response of responses) {
       // Extract coordinates
@@ -590,11 +635,61 @@ Généré par G-Survey - ${new Date().getFullYear()}
 
     archive.append(readmeContent, { name: 'README.txt' });
 
+    // Gestionnaire pour nettoyer les fichiers temporaires après l'export
+    archive.on('end', () => {
+      // Nettoyer les fichiers temporaires
+      tempFiles.forEach((tempFile) => {
+        try {
+          if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile);
+          }
+        } catch (cleanupError) {
+          console.error('Erreur nettoyage fichier temporaire:', cleanupError);
+        }
+      });
+      
+      // Nettoyer le dossier temporaire s'il est vide
+      try {
+        const files = fs.readdirSync(tempFilesDir);
+        if (files.length === 0) {
+          fs.rmdirSync(tempFilesDir);
+        }
+      } catch (cleanupError) {
+        console.error('Erreur nettoyage dossier temporaire:', cleanupError);
+      }
+    });
+
+    // Gestionnaire d'erreur pour nettoyer en cas d'échec
+    archive.on('error', (error) => {
+      console.error('Erreur archive:', error);
+      tempFiles.forEach((tempFile) => {
+        try {
+          if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile);
+          }
+        } catch (cleanupError) {
+          console.error('Erreur nettoyage fichier temporaire:', cleanupError);
+        }
+      });
+    });
+
     // Finaliser l'archive
     await archive.finalize();
 
   } catch (error) {
     console.error('Erreur export complet:', error);
+    
+    // Nettoyer les fichiers temporaires en cas d'erreur
+    tempFiles.forEach((tempFile) => {
+      try {
+        if (fs.existsSync(tempFile)) {
+          fs.unlinkSync(tempFile);
+        }
+      } catch (cleanupError) {
+        console.error('Erreur nettoyage fichier temporaire:', cleanupError);
+      }
+    });
+    
     next(error);
   }
 });
