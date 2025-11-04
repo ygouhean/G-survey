@@ -859,7 +859,7 @@ router.delete('/users/:id', protect, async (req, res, next) => {
 // @access  Private
 router.get('/agents', protect, async (req, res, next) => {
   try {
-    let whereClause: any = {
+    let whereClause = {
       isActive: true
     };
 
