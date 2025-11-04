@@ -134,13 +134,16 @@ Survey.closeExpiredSurveys = async function() {
   const now = new Date();
   
   try {
+    // Utiliser hooks: false pour éviter la récursion infinie
+    // car cette méthode est appelée depuis beforeFind
     const expiredSurveys = await Survey.findAll({
       where: {
         status: 'active',
         endDate: {
           [require('sequelize').Op.ne]: null
         }
-      }
+      },
+      hooks: false // IMPORTANT : désactiver les hooks pour éviter la récursion
     });
 
     // Filtrer manuellement pour vérifier la date avec 23:59:59
