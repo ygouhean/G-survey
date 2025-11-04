@@ -82,6 +82,28 @@ router.post('/register',
         isActive: true
       });
 
+      // Generate token for auto-login after registration
+      // Vérifier que JWT_SECRET est défini
+      if (!process.env.JWT_SECRET) {
+        console.error('❌ JWT_SECRET n\'est pas défini dans les variables d\'environnement');
+        return res.status(500).json({
+          success: false,
+          message: 'Erreur de configuration serveur. Veuillez contacter l\'administrateur.'
+        });
+      }
+
+      const token = generateToken(user.id);
+
+      // Récupérer l'utilisateur complet sans le mot de passe
+      const userWithoutPassword = await User.findByPk(user.id);
+      
+      if (!userWithoutPassword) {
+        return res.status(500).json({
+          success: false,
+          message: 'Erreur lors de la récupération de l\'utilisateur'
+        });
+      }
+
       // Notify all admins and supervisors about the new registration
       // This runs asynchronously without blocking the response
       notifyUserRegistration(user.id).catch(err => {
@@ -95,12 +117,6 @@ router.post('/register',
         // Ne pas bloquer l'inscription si l'email échoue
       });
 
-      // Generate token for auto-login after registration
-      const token = generateToken(user.id);
-
-      // Récupérer l'utilisateur complet sans le mot de passe
-      const userWithoutPassword = await User.findByPk(user.id);
-
       res.status(201).json({
         success: true,
         data: {
@@ -110,6 +126,17 @@ router.post('/register',
         message: 'Inscription réussie ! Bienvenue sur G-Survey. Un email de confirmation a été envoyé.'
       });
     } catch (error) {
+      console.error('❌ Erreur lors de l\'inscription:', error);
+      // Log les détails de l'erreur pour le débogage
+      if (error.name) {
+        console.error('Nom de l\'erreur:', error.name);
+      }
+      if (error.message) {
+        console.error('Message de l\'erreur:', error.message);
+      }
+      if (error.stack) {
+        console.error('Stack trace:', error.stack);
+      }
       next(error);
     }
   }
@@ -347,6 +374,15 @@ router.post('/login',
       user.lastLogin = new Date();
       await user.save();
 
+      // Vérifier que JWT_SECRET est défini
+      if (!process.env.JWT_SECRET) {
+        console.error('❌ JWT_SECRET n\'est pas défini dans les variables d\'environnement');
+        return res.status(500).json({
+          success: false,
+          message: 'Erreur de configuration serveur. Veuillez contacter l\'administrateur.'
+        });
+      }
+
       // Generate token
       const token = generateToken(user.id);
 
@@ -359,6 +395,13 @@ router.post('/login',
         }]
       });
 
+      if (!userWithoutPassword) {
+        return res.status(500).json({
+          success: false,
+          message: 'Erreur lors de la récupération de l\'utilisateur'
+        });
+      }
+
       res.json({
         success: true,
         data: {
@@ -367,6 +410,17 @@ router.post('/login',
         }
       });
     } catch (error) {
+      console.error('❌ Erreur lors de la connexion:', error);
+      // Log les détails de l'erreur pour le débogage
+      if (error.name) {
+        console.error('Nom de l\'erreur:', error.name);
+      }
+      if (error.message) {
+        console.error('Message de l\'erreur:', error.message);
+      }
+      if (error.stack) {
+        console.error('Stack trace:', error.stack);
+      }
       next(error);
     }
   }

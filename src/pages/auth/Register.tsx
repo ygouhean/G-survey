@@ -280,6 +280,7 @@ export default function Register() {
                   onChange={handleChange}
                   className="input"
                   placeholder="votre@email.com"
+                  autoComplete="username"
                   required
                 />
               </div>

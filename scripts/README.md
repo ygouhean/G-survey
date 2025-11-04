@@ -36,9 +36,57 @@ chmod +x add-profile-fields.sh
 ./add-profile-fields.sh
 ```
 
+### Scripts d'Export/Import
+
+#### 3. `export-db-to-supabase.ps1` (Windows)
+Script PowerShell pour exporter la base de données locale et l'importer sur Supabase.
+
+**Usage :**
+```powershell
+cd scripts
+# Export uniquement
+.\export-db-to-supabase.ps1
+
+# Export + Import automatique
+.\export-db-to-supabase.ps1 -ImportToSupabase -SupabaseUri "postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+
+# Nettoyer un fichier existant et importer
+.\export-db-to-supabase.ps1 -ImportToSupabase -SupabaseUri "postgresql://..." -InputFile "..\backup_gsurvey.sql"
+```
+
+**Ce qu'il fait :**
+- Exporte la base de données locale en format SQL
+- Nettoie le fichier SQL pour Supabase (supprime CREATE DATABASE, CREATE EXTENSION, etc.)
+- Optionnel : Importe automatiquement dans Supabase
+- Charge les variables d'environnement depuis `.env`
+
+**Important :**
+- PostGIS doit être activé manuellement sur Supabase avant l'import
+- Le script utilise les variables `POSTGRES_*` du fichier `.env`
+
+#### 4. `export-db-to-supabase.sh` (Linux/Mac)
+Équivalent Bash du script PowerShell ci-dessus.
+
+**Usage :**
+```bash
+cd scripts
+chmod +x export-db-to-supabase.sh
+
+# Export uniquement
+./export-db-to-supabase.sh
+
+# Export + Import automatique
+./export-db-to-supabase.sh --import --uri "postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres"
+
+# Nettoyer un fichier existant et importer
+./export-db-to-supabase.sh --import --uri "postgresql://..." --file "../backup_gsurvey.sql"
+```
+
+**Voir aussi :** `IMPORT_DB_SUPABASE.md` à la racine du projet pour un guide détaillé.
+
 ### Scripts de Maintenance
 
-#### 3. `reset-db.ps1` (Windows)
+#### 5. `reset-db.ps1` (Windows)
 Réinitialise complètement la base de données.
 
 **⚠️ ATTENTION :** Supprime toutes les données !
@@ -49,7 +97,7 @@ cd scripts
 .\reset-db.ps1
 ```
 
-#### 4. `reset-db.sh` (Linux/Mac)
+#### 6. `reset-db.sh` (Linux/Mac)
 Équivalent Bash du script PowerShell ci-dessus.
 
 **Usage :**
@@ -59,7 +107,7 @@ chmod +x reset-db.sh
 ./reset-db.sh
 ```
 
-#### 5. `setup.sh` (Linux/Mac)
+#### 7. `setup.sh` (Linux/Mac)
 Script d'installation et de configuration initiale.
 
 **Usage :**
@@ -71,7 +119,7 @@ chmod +x setup.sh
 
 ### Scripts SQL
 
-#### 6. `fix-supervisor-team.sql`
+#### 8. `fix-supervisor-team.sql`
 Corrige les relations entre superviseurs et équipes.
 
 **Usage :**
@@ -218,6 +266,7 @@ psql -h localhost -p 5432 -U postgres -d gsurvey < backup_YYYYMMDD_HHMMSS.sql
 - **Guide de test** : `GUIDE_TEST_NOUVELLES_PAGES.md`
 - **Guide de mise à jour** : `MISE_A_JOUR_PROFIL_UTILISATEUR.md`
 - **Guide rapide** : `GUIDE_RAPIDE_MISE_A_JOUR_PROFIL.md`
+- **Import vers Supabase** : `IMPORT_DB_SUPABASE.md`
 
 ## 🆘 Aide
 

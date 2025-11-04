@@ -40,7 +40,18 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         try {
           const response = await api.post('/auth/login', { email, password })
+          
+          // Vérifier que la réponse contient les données attendues
+          if (!response.data || !response.data.data) {
+            throw new Error('Réponse invalide du serveur')
+          }
+
           const { user, token } = response.data.data
+
+          // Vérifier que user et token sont présents
+          if (!user || !token) {
+            throw new Error('Données d\'authentification manquantes dans la réponse')
+          }
 
           set({
             user,
@@ -52,8 +63,13 @@ export const useAuthStore = create<AuthState>()(
           // Set token in api service
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`
         } catch (error: any) {
-          set({ loading: false })
-          throw new Error(error.response?.data?.message || 'Adresse e-mail ou mot de passe incorrect')
+          set({ 
+            loading: false,
+            user: null,
+            token: null,
+            isAuthenticated: false
+          })
+          throw new Error(error.response?.data?.message || error.message || 'Adresse e-mail ou mot de passe incorrect')
         }
       },
 

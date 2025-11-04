@@ -67,11 +67,12 @@ export default function Login() {
                   <strong>Email</strong>
                 </label>
                 <input
-                  type="text"
+                  type="email"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="input"
                   placeholder="email@exemple.com"
+                  autoComplete="username"
                   required
                   autoFocus
                 />
