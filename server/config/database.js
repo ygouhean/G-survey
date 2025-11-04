@@ -101,8 +101,21 @@ const connectDB = async () => {
     require('../models/index');
 
     // Synchroniser les modèles avec la base de données
-    // En production, utilisez les migrations au lieu de sync
-    if (process.env.NODE_ENV !== 'production') {
+    // En production, on utilise sync avec force: false pour créer les tables si elles n'existent pas
+    // mais sans écraser les données existantes
+    if (process.env.NODE_ENV === 'production') {
+      // En production, on synchronise seulement si les tables n'existent pas
+      // Cela évite d'écraser les données existantes
+      try {
+        await sequelize.sync({ alter: false, force: false });
+        console.log('✅ Database models synchronized (production mode)');
+      } catch (syncError) {
+        console.error('⚠️  Erreur lors de la synchronisation (production):', syncError.message);
+        // Ne pas bloquer le démarrage si la synchronisation échoue
+        // Les tables peuvent déjà exister
+      }
+    } else {
+      // En développement, synchronisation normale
       await sequelize.sync({ alter: false });
       console.log('✅ Database models synchronized');
     }
