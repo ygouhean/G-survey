@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { navigateTo } from '../utils/navigation'
 
 // S'assurer que la baseURL se termine toujours par /api
 const getBaseURL = () => {
@@ -29,7 +30,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem('auth-storage')
-      window.location.href = '/login'
+      delete api.defaults.headers.common['Authorization']
+      // Utiliser navigateTo au lieu de window.location pour une navigation SPA
+      navigateTo('/login')
     }
     return Promise.reject(error)
   }

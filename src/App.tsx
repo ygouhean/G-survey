@@ -1,6 +1,7 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
 import { useEffect } from 'react'
+import { setNavigationHandler } from './utils/navigation'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -32,6 +33,7 @@ import Settings from './pages/Settings'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingSpinner from './components/LoadingSpinner'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
   const { checkAuth, loading, isAuthenticated } = useAuthStore()
@@ -45,53 +47,71 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
+    <ErrorBoundary>
+      <Router>
+        <AppRouterContent isAuthenticated={isAuthenticated} />
+      </Router>
+    </ErrorBoundary>
+  )
+}
 
-        {/* Auth Routes */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-        </Route>
+// Composant interne pour configurer la navigation et les routes
+function AppRouterContent({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const navigate = useNavigate()
+  
+  useEffect(() => {
+    // Configurer le handler de navigation pour les services
+    setNavigationHandler((path: string) => {
+      navigate(path, { replace: false })
+    })
+  }, [navigate])
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          
-          {/* Surveys */}
-          <Route path="/surveys" element={<SurveyList />} />
-          <Route path="/surveys/create" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyCreate /></ProtectedRoute>} />
-          
-          {/* Routes spécifiques pour un sondage (doivent être AVANT la route générique /surveys/:id) */}
-          <Route path="/surveys/:id/respond" element={<SurveyRespond />} />
-          <Route path="/surveys/:id/edit" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyEdit /></ProtectedRoute>} />
-          <Route path="/surveys/:id/analytics" element={<Analytics />} />
-          <Route path="/surveys/:id/map" element={<MapView />} />
-          <Route path="/surveys/:id" element={<SurveyView />} />
-          
-          {/* Map */}
-          <Route path="/map" element={<MapView />} />
-          
-          {/* Analytics */}
-          <Route path="/analytics" element={<Analytics />} />
-          
-          {/* Admin */}
-          <Route path="/users" element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />
-          
-          {/* Settings */}
-          <Route path="/settings" element={<Settings />} />
-        </Route>
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+      {/* Auth Routes */}
+      <Route element={<AuthLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+      </Route>
+
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        
+        {/* Surveys */}
+        <Route path="/surveys" element={<SurveyList />} />
+        <Route path="/surveys/create" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyCreate /></ProtectedRoute>} />
+        
+        {/* Routes spécifiques pour un sondage (doivent être AVANT la route générique /surveys/:id) */}
+        <Route path="/surveys/:id/respond" element={<SurveyRespond />} />
+        <Route path="/surveys/:id/edit" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyEdit /></ProtectedRoute>} />
+        <Route path="/surveys/:id/analytics" element={<Analytics />} />
+        <Route path="/surveys/:id/map" element={<MapView />} />
+        <Route path="/surveys/:id" element={<SurveyView />} />
+        
+        {/* Map */}
+        <Route path="/map" element={<MapView />} />
+        
+        {/* Analytics */}
+        <Route path="/analytics" element={<Analytics />} />
+        
+        {/* Admin */}
+        <Route path="/users" element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />
+        
+        {/* Settings */}
+        <Route path="/settings" element={<Settings />} />
+      </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
 
