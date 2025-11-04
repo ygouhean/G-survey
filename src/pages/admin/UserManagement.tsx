@@ -52,7 +52,7 @@ export default function UserManagement() {
 
   const sectors = [
     'Agriculture', 'Santé', 'Éducation', 'Commerce', 'Industrie', 'Services', 
-    'Technologie', 'Finance', 'Transport', 'Construction', 'Énergie',
+    'Technologie', 'Finance', 'Transport', 'Construction', 'Énergie', 'Enronnement', 
     'Télécommunications', 'Tourisme', 'Autre'
   ]
 
@@ -462,7 +462,7 @@ export default function UserManagement() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className="input"
-                      placeholder="+33 6 12 34 56 78"
+                      placeholder="+225 07 00 00 00 00"
                   />
                   </div>
                 </div>

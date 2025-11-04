@@ -3,18 +3,22 @@ import { MapPin, ArrowLeft } from 'lucide-react'
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-primary-900">
       {/* Header */}
       <nav className="bg-white dark:bg-gray-800 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center">
-              <MapPin className="w-8 h-8 text-primary-600" />
-              <span className="ml-2 text-2xl font-bold text-primary-600">G-Survey</span>
+              <img 
+              src="/images/logolight.png" 
+              alt="G-Survey Logo" 
+              className="w-10 h-10 object-cover rounded-full" 
+              />
+              <span className="ml-2 text-2xl font-bold text-primary-900">G-Survey</span>
             </Link>
             <Link 
               to="/login"
-              className="flex items-center text-primary-600 hover:text-primary-700 font-medium transition-colors"
+              className="flex items-center text-primary-900 hover:text-primary-700 font-medium transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
@@ -26,7 +30,7 @@ export default function Privacy() {
       {/* Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 md:p-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold text-primary-900 dark:text-white mb-4">
             Politique de Confidentialité
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
@@ -35,7 +39,7 @@ export default function Privacy() {
 
           <div className="prose prose-lg dark:prose-invert max-w-none">
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 1. Introduction
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -46,14 +50,14 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 2. Données que Nous Collectons
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 Nous collectons les types de données suivants :
               </p>
               
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">
+              <h3 className="text-xl font-semibold text-primary-900 dark:text-white mb-3 mt-6">
                 2.1 Informations d'Inscription
               </h3>
               <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 space-y-2 mb-4">
@@ -66,7 +70,7 @@ export default function Privacy() {
                 <li>Secteur d'activité et type d'organisation</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">
+              <h3 className="text-xl font-semibold text-primary-900 dark:text-white mb-3 mt-6">
                 2.2 Données de Sondage
               </h3>
               <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 space-y-2 mb-4">
@@ -76,7 +80,7 @@ export default function Privacy() {
                 <li>Date et heure de collecte</li>
               </ul>
 
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 mt-6">
+              <h3 className="text-xl font-semibold text-primary-900 dark:text-white mb-3 mt-6">
                 2.3 Données d'Utilisation
               </h3>
               <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 space-y-2 mb-4">
@@ -88,7 +92,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 3. Comment Nous Utilisons Vos Données
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -106,7 +110,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 4. Partage de Vos Données
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -130,7 +134,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 5. Sécurité des Données
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -147,7 +151,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 6. Conservation des Données
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -158,7 +162,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 7. Vos Droits
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -175,7 +179,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 8. Cookies et Technologies Similaires
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -193,7 +197,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 9. Transferts Internationaux
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -204,7 +208,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 10. Modifications de Cette Politique
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -215,7 +219,7 @@ export default function Privacy() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl font-semibold text-primary-900 dark:text-white mb-4">
                 11. Contact
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">

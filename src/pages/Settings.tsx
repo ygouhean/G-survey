@@ -501,8 +501,6 @@ export default function Settings() {
                 </label>
                 <select className="input">
                   <option value="fr">🇫🇷 Français</option>
-                  <option value="en">🇬🇧 English</option>
-                  <option value="es">🇪🇸 Español</option>
                 </select>
               </div>
 
