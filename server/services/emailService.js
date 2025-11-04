@@ -15,6 +15,19 @@ const createTransporter = () => {
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
+    },
+    // Configuration pour éviter les timeouts
+    connectionTimeout: 30000, // 30 secondes pour établir la connexion
+    greetingTimeout: 30000, // 30 secondes pour la réponse du serveur
+    socketTimeout: 30000, // 30 secondes pour les opérations socket
+    // Retry configuration
+    pool: true,
+    maxConnections: 1,
+    maxMessages: 3,
+    // TLS options pour améliorer la compatibilité
+    tls: {
+      rejectUnauthorized: false, // Accepter les certificats auto-signés
+      ciphers: 'SSLv3'
     }
   };
 
@@ -176,7 +189,7 @@ const resetPasswordEmailTemplate = (user, resetUrl, expirationMinutes = 10) => {
  * @param {string} options.html - Contenu HTML
  * @param {string} options.text - Contenu texte (optionnel)
  */
-const sendEmail = async ({ to, subject, html, text }) => {
+const sendEmail = async ({ to, subject, html, text }, retries = 2) => {
   try {
     // Vérifier d'abord si SMTP est configuré
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
@@ -212,20 +225,48 @@ const sendEmail = async ({ to, subject, html, text }) => {
       text: text || html.replace(/<[^>]*>/g, '') // Extraire le texte brut du HTML
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email envoyé avec succès:', {
-      to,
-      subject,
-      messageId: info.messageId
-    });
+    // Tentative d'envoi avec retry en cas d'échec
+    let lastError;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const info = await transporter.sendMail(mailOptions);
+        
+        console.log('✅ Email envoyé avec succès:', {
+          to,
+          subject,
+          messageId: info.messageId,
+          attempt: attempt + 1
+        });
 
-    return {
-      success: true,
-      messageId: info.messageId
-    };
+        return {
+          success: true,
+          messageId: info.messageId
+        };
+      } catch (error) {
+        lastError = error;
+        
+        // Si c'est une erreur de timeout ou de connexion, réessayer
+        if ((error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED' || error.code === 'ESOCKET') && attempt < retries) {
+          const waitTime = (attempt + 1) * 2000; // Attendre 2s, 4s, etc.
+          console.warn(`⚠️ Tentative ${attempt + 1}/${retries + 1} échouée. Réessai dans ${waitTime}ms...`, error.message);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          continue;
+        }
+        
+        // Sinon, propager l'erreur
+        throw error;
+      }
+    }
+    
+    // Si toutes les tentatives ont échoué
+    throw lastError;
   } catch (error) {
     console.error('❌ Erreur lors de l\'envoi de l\'email:', error);
+    console.error('   Code:', error.code);
+    console.error('   Message:', error.message);
+    console.error('   SMTP Host:', process.env.SMTP_HOST || 'non défini');
+    console.error('   SMTP Port:', process.env.SMTP_PORT || 'non défini');
+    console.error('   SMTP User:', process.env.SMTP_USER ? 'défini' : 'non défini');
     throw error;
   }
 };

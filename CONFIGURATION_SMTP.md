@@ -95,7 +95,42 @@ Vous verrez ces messages dans les logs :
 **En cas d'erreur :**
 ```
 ❌ Erreur lors de l'envoi de l'email: [détails de l'erreur]
+   Code: ETIMEDOUT
+   Message: Connection timeout
+   SMTP Host: smtp.gmail.com
+   SMTP Port: 587
 ```
+
+### 🔧 Résolution des problèmes de timeout
+
+Si vous rencontrez des erreurs de timeout (`ETIMEDOUT`, `ECONNREFUSED`, `ESOCKET`) :
+
+1. **Vérifier les variables d'environnement** sur Render :
+   - Allez dans votre service Render
+   - Settings → Environment Variables
+   - Vérifiez que toutes les variables SMTP_* sont définies
+
+2. **Vérifier la connectivité réseau** :
+   - Certains serveurs SMTP peuvent être bloqués par des firewalls
+   - Essayez un autre serveur SMTP (SendGrid, Mailgun) si Gmail ne fonctionne pas
+
+3. **Utiliser un service d'emails tiers** (recommandé pour la production) :
+   - **SendGrid** : Plus fiable et optimisé pour les serveurs cloud
+   - **Mailgun** : Alternative robuste
+   - **AWS SES** : Si vous utilisez AWS
+
+4. **Configuration SendGrid** (recommandé) :
+   ```env
+   SMTP_HOST=smtp.sendgrid.net
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=apikey
+   SMTP_PASS=votre-api-key-sendgrid
+   ```
+
+5. **Le système réessaye automatiquement** :
+   - En cas de timeout, 3 tentatives sont effectuées
+   - Délai progressif entre les tentatives (2s, 4s)
 
 ## 🚀 Déploiement sur Vercel/Render
 
