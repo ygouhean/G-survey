@@ -40,7 +40,12 @@ export default function SurveyView() {
         throw new Error('Sondage non trouvé')
       }
       
-      setSurvey(surveyRes.data)
+      const surveyData = surveyRes.data
+      // S'assurer que questions est toujours un tableau
+      if (surveyData && (!surveyData.questions || !Array.isArray(surveyData.questions))) {
+        surveyData.questions = []
+      }
+      setSurvey(surveyData)
       setResponses(responsesRes.data || [])
     } catch (error: any) {
       console.error('Error loading data:', error)
@@ -333,10 +338,10 @@ export default function SurveyView() {
         <div className="card">
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Questions</div>
           <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {survey.questions.length}
+            {survey.questions && Array.isArray(survey.questions) ? survey.questions.length : 0}
           </div>
           <div className="text-sm text-gray-500 mt-1">
-            {survey.questions.filter((q: any) => q.required).length} requises
+            {survey.questions && Array.isArray(survey.questions) ? survey.questions.filter((q: any) => q && q.required).length : 0} requises
           </div>
         </div>
 
@@ -579,9 +584,9 @@ export default function SurveyView() {
 
       {/* Questions */}
       <div className="card">
-        <h2 className="text-xl font-semibold mb-4">Questions ({survey.questions.length})</h2>
+        <h2 className="text-xl font-semibold mb-4">Questions ({survey.questions && Array.isArray(survey.questions) ? survey.questions.length : 0})</h2>
         <div className="max-h-[400px] overflow-y-auto space-y-3 pr-2">
-          {survey.questions.map((question: any, index: number) => (
+          {survey.questions && Array.isArray(survey.questions) && survey.questions.map((question: any, index: number) => (
             <div
               key={question.id}
               className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
@@ -606,7 +611,7 @@ export default function SurveyView() {
             </div>
           ))}
         </div>
-        {survey.questions.length > 3 && (
+        {survey.questions && Array.isArray(survey.questions) && survey.questions.length > 3 && (
           <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
             ↕️ Faites défiler pour voir toutes les questions
           </p>

@@ -58,7 +58,12 @@ export default function SurveyRespond() {
   const loadSurvey = async () => {
     try {
       const response = await surveyService.getSurvey(id!)
-      setSurvey(response.data)
+      const surveyData = response.data
+      // S'assurer que questions est toujours un tableau
+      if (surveyData && (!surveyData.questions || !Array.isArray(surveyData.questions))) {
+        surveyData.questions = []
+      }
+      setSurvey(surveyData)
     } catch (error) {
       console.error('Error loading survey:', error)
       alert('Erreur lors du chargement du sondage')
@@ -128,8 +133,14 @@ export default function SurveyRespond() {
   }
 
   const handleSubmit = async () => {
+    // Vérifier que survey et questions existent et sont valides
+    if (!survey || !survey.questions || !Array.isArray(survey.questions)) {
+      alert('Erreur : Le sondage n\'est pas valide')
+      return
+    }
+
     // Validate required questions
-    const requiredQuestions = survey.questions.filter((q: any) => q.required)
+    const requiredQuestions = survey.questions.filter((q: any) => q && q.required)
     const missingAnswers = requiredQuestions.filter((q: any) => !answers[q.id])
     
     if (missingAnswers.length > 0) {
@@ -138,7 +149,7 @@ export default function SurveyRespond() {
     }
 
     // Validate email questions
-    const emailQuestions = survey.questions.filter((q: any) => q.type === 'email')
+    const emailQuestions = survey.questions.filter((q: any) => q && q.type === 'email')
     for (const question of emailQuestions) {
       const emailValue = answers[question.id]
       if (emailValue) {
@@ -155,7 +166,7 @@ export default function SurveyRespond() {
     }
 
     // Validate number questions
-    const numberQuestions = survey.questions.filter((q: any) => q.type === 'number')
+    const numberQuestions = survey.questions.filter((q: any) => q && q.type === 'number')
     for (const question of numberQuestions) {
       const numberValue = answers[question.id]
       if (numberValue && isNaN(numberValue)) {
@@ -300,7 +311,9 @@ export default function SurveyRespond() {
     )
   }
 
-  const progress = ((currentQuestion + 1) / survey.questions.length) * 100
+  const progress = survey.questions && Array.isArray(survey.questions) && survey.questions.length > 0
+    ? ((currentQuestion + 1) / survey.questions.length) * 100
+    : 0
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -341,7 +354,7 @@ export default function SurveyRespond() {
         )}
 
         {/* Question */}
-        {survey.questions.map((question: any, index: number) => (
+        {survey.questions && Array.isArray(survey.questions) && survey.questions.map((question: any, index: number) => (
           <div
             key={question.id}
             className={index === currentQuestion ? 'block' : 'hidden'}
