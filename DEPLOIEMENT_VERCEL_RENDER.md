@@ -88,13 +88,32 @@ Notes:
    - Format : `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
 
 3. **Extraire les variables** :
-   - `POSTGRES_HOST` = `db.[PROJECT-REF].supabase.co` (ex: `db.udfhiiqnozfijhejdhuu.supabase.co`)
-   - `POSTGRES_PORT` = `5432`
-   - `POSTGRES_DB` = **`postgres`** (base par défaut Supabase - ⚠️ utilisez "postgres", pas "gsurvey")
-   - `POSTGRES_USER` = `postgres`
-   - `POSTGRES_PASSWORD` = le mot de passe que vous avez noté
    
-   **Note importante** : Supabase utilise `postgres` comme nom de base par défaut. Si vous créez vos tables dans cette base, utilisez `postgres` comme valeur de `POSTGRES_DB`. Vous pouvez créer une base séparée si nécessaire, mais `postgres` fonctionne parfaitement.
+   **⚠️ IMPORTANT : Pour Render, utilisez le Session Pooler (IPv4) au lieu de la connexion directe**
+   
+   Supabase utilise IPv6 par défaut, mais Render ne supporte que IPv4. Pour résoudre ce problème :
+   
+   **Option A : Session Pooler (RECOMMANDÉ pour Render)**
+   - Dans Supabase : **Settings** → **Database** → **Connection Pooling**
+   - Mode : **Session** (pas Transaction)
+   - Copiez l'URI du pooler (format : `db.[PROJECT-REF].pooler.supabase.com`)
+   - Variables :
+     - `POSTGRES_HOST` = `db.[PROJECT-REF].pooler.supabase.co` (ex: `db.udfhiiqnozfijhejdhuu.pooler.supabase.co`)
+     - `POSTGRES_PORT` = **`6543`** (port du pooler, pas 5432)
+     - `POSTGRES_DB` = **`postgres`** (base par défaut)
+     - `POSTGRES_USER` = `postgres`
+     - `POSTGRES_PASSWORD` = le mot de passe que vous avez noté
+   
+   **Option B : Connexion directe (avec résolution IPv4 automatique)**
+   - Le code résout automatiquement le DNS en IPv4
+   - Variables :
+     - `POSTGRES_HOST` = `db.[PROJECT-REF].supabase.co` (ex: `db.udfhiiqnozfijhejdhuu.supabase.co`)
+     - `POSTGRES_PORT` = `5432`
+     - `POSTGRES_DB` = **`postgres`** (base par défaut Supabase - ⚠️ utilisez "postgres", pas "gsurvey")
+     - `POSTGRES_USER` = `postgres`
+     - `POSTGRES_PASSWORD` = le mot de passe que vous avez noté
+   
+   **Note importante** : Supabase utilise `postgres` comme nom de base par défaut. Si vous créez vos tables dans cette base, utilisez `postgres` comme valeur de `POSTGRES_DB`.
 
 4. **Activer PostGIS** :
    - Dans Supabase : **SQL Editor**
@@ -104,7 +123,9 @@ Notes:
 5. **Important** :
    - ✅ Le code configure automatiquement SSL pour Supabase (détecte "supabase" dans le host)
    - ✅ Pas besoin de configuration SSL supplémentaire
+   - ⚠️ **Pour Render** : Utilisez le Session Pooler (Option A) pour éviter les problèmes IPv6/IPv4
    - ⚠️ Assurez-vous que `POSTGRES_HOST` contient bien "supabase" pour activer SSL automatiquement
+   - ✅ Le code résout automatiquement le DNS en IPv4 si vous utilisez la connexion directe (Option B)
 
 ---
 
@@ -136,7 +157,19 @@ Notes:
 ## 7) Dépannage rapide
 
 ### Erreur de connexion PostgreSQL
-- **Erreur `ENETUNREACH` ou `ECONNREFUSED`** :
+- **Erreur `ENETUNREACH` avec IPv6 (ex: `2a05:d016:...`) ** :
+  - ⚠️ **Cause** : Supabase utilise IPv6 par défaut, Render ne supporte que IPv4
+  - ✅ **Solution** : Utilisez le **Session Pooler** de Supabase (compatible IPv4)
+    1. Allez dans Supabase → **Settings** → **Database** → **Connection Pooling**
+    2. Mode : **Session** (pas Transaction)
+    3. Copiez l'URI du pooler (format : `db.xxx.pooler.supabase.com`)
+    4. Dans Render, mettez à jour :
+       - `POSTGRES_HOST` = URI du pooler (avec `.pooler.`)
+       - `POSTGRES_PORT` = **`6543`** (port du pooler, pas 5432)
+    5. Redéployez sur Render
+  - ✅ **Alternative** : Le code résout automatiquement le DNS en IPv4, mais le pooler est plus fiable
+
+- **Erreur `ENETUNREACH` ou `ECONNREFUSED` (général)** :
   - ✅ Vérifiez que `POSTGRES_HOST` contient "supabase" (SSL activé automatiquement)
   - ✅ Vérifiez que toutes les variables `POSTGRES_*` sont correctement définies dans Render
   - ✅ Vérifiez que le mot de passe Supabase est correct (régénérer si nécessaire)
