@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
 import SurveyBuilder from '../../components/SurveyBuilder'
 import surveyService from '../../services/surveyService'
 
@@ -17,6 +18,15 @@ const getCSATEmojis = (type: string = 'stars') => {
 
 export default function SurveyCreate() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  
+  // Vérifier les permissions
+  useEffect(() => {
+    if (user && !['admin', 'supervisor'].includes(user.role)) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate])
+  
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [questions, setQuestions] = useState<any[]>([])

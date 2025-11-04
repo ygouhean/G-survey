@@ -1,8 +1,20 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../store/authStore'
 import api from '../../services/api'
 import LoadingSpinner from '../../components/LoadingSpinner'
 
 export default function UserManagement() {
+  const navigate = useNavigate()
+  const { user } = useAuthStore()
+  
+  // Vérifier les permissions
+  useEffect(() => {
+    if (user && user.role !== 'admin') {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [user, navigate])
+  
   const [users, setUsers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)

@@ -41,8 +41,13 @@ export default function SurveyEdit() {
   const [showAllPreview, setShowAllPreview] = useState(false)
 
   useEffect(() => {
+    // Vérifier les permissions
+    if (user && !['admin', 'supervisor'].includes(user.role)) {
+      navigate('/dashboard', { replace: true })
+      return
+    }
     loadSurvey()
-  }, [id])
+  }, [id, user, navigate])
 
   const loadSurvey = async () => {
     try {

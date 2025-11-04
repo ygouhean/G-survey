@@ -69,7 +69,7 @@ function AppRouterContent({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Routes>
       {/* Public Routes */}
-      <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />} />
+      <Route path="/" element={<Landing />} />
       <Route path="/terms" element={<Terms />} />
       <Route path="/privacy" element={<Privacy />} />
 
@@ -87,11 +87,11 @@ function AppRouterContent({ isAuthenticated }: { isAuthenticated: boolean }) {
         
         {/* Surveys */}
         <Route path="/surveys" element={<SurveyList />} />
-        <Route path="/surveys/create" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyCreate /></ProtectedRoute>} />
+        <Route path="/surveys/create" element={<SurveyCreate />} />
         
         {/* Routes spécifiques pour un sondage (doivent être AVANT la route générique /surveys/:id) */}
         <Route path="/surveys/:id/respond" element={<SurveyRespond />} />
-        <Route path="/surveys/:id/edit" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyEdit /></ProtectedRoute>} />
+        <Route path="/surveys/:id/edit" element={<SurveyEdit />} />
         <Route path="/surveys/:id/analytics" element={<Analytics />} />
         <Route path="/surveys/:id/map" element={<MapView />} />
         <Route path="/surveys/:id" element={<SurveyView />} />
@@ -103,7 +103,7 @@ function AppRouterContent({ isAuthenticated }: { isAuthenticated: boolean }) {
         <Route path="/analytics" element={<Analytics />} />
         
         {/* Admin */}
-        <Route path="/users" element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />
+        <Route path="/users" element={<UserManagement />} />
         
         {/* Settings */}
         <Route path="/settings" element={<Settings />} />
