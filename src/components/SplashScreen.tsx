@@ -193,19 +193,37 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         }
 
         .arm-1 {
-          transform: translate(-50%, -50%) rotate(45deg) translateY(-30px);
+          transform: translate(-50%, -50%) rotate(45deg) translateY(-22px);
         }
 
         .arm-2 {
-          transform: translate(-50%, -50%) rotate(135deg) translateY(-30px);
+          transform: translate(-50%, -50%) rotate(135deg) translateY(-22px);
         }
 
         .arm-3 {
-          transform: translate(-50%, -50%) rotate(225deg) translateY(-30px);
+          transform: translate(-50%, -50%) rotate(225deg) translateY(-22px);
         }
 
         .arm-4 {
-          transform: translate(-50%, -50%) rotate(315deg) translateY(-30px);
+          transform: translate(-50%, -50%) rotate(315deg) translateY(-22px);
+        }
+
+        @media (min-width: 640px) {
+          .arm-1 {
+            transform: translate(-50%, -50%) rotate(45deg) translateY(-30px);
+          }
+
+          .arm-2 {
+            transform: translate(-50%, -50%) rotate(135deg) translateY(-30px);
+          }
+
+          .arm-3 {
+            transform: translate(-50%, -50%) rotate(225deg) translateY(-30px);
+          }
+
+          .arm-4 {
+            transform: translate(-50%, -50%) rotate(315deg) translateY(-30px);
+          }
         }
 
         .propeller {
@@ -225,19 +243,37 @@ export default function SplashScreen({ onComplete }: SplashScreenProps) {
         }
 
         .prop-1 {
-          transform: translate(-50%, -50%) rotate(45deg) translateY(-60px);
+          transform: translate(-50%, -50%) rotate(45deg) translateY(-45px);
         }
 
         .prop-2 {
-          transform: translate(-50%, -50%) rotate(135deg) translateY(-60px);
+          transform: translate(-50%, -50%) rotate(135deg) translateY(-45px);
         }
 
         .prop-3 {
-          transform: translate(-50%, -50%) rotate(225deg) translateY(-60px);
+          transform: translate(-50%, -50%) rotate(225deg) translateY(-45px);
         }
 
         .prop-4 {
-          transform: translate(-50%, -50%) rotate(315deg) translateY(-60px);
+          transform: translate(-50%, -50%) rotate(315deg) translateY(-45px);
+        }
+
+        @media (min-width: 640px) {
+          .prop-1 {
+            transform: translate(-50%, -50%) rotate(45deg) translateY(-60px);
+          }
+
+          .prop-2 {
+            transform: translate(-50%, -50%) rotate(135deg) translateY(-60px);
+          }
+
+          .prop-3 {
+            transform: translate(-50%, -50%) rotate(225deg) translateY(-60px);
+          }
+
+          .prop-4 {
+            transform: translate(-50%, -50%) rotate(315deg) translateY(-60px);
+          }
         }
 
         .propeller-blade {
