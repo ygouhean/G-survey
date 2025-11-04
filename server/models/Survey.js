@@ -124,7 +124,19 @@ const Survey = sequelize.define('Survey', {
   hooks: {
     // Hook pour vérifier et fermer automatiquement les sondages expirés
     beforeFind: async (options) => {
-      await Survey.closeExpiredSurveys();
+      // Éviter la récursion : ne pas appeler closeExpiredSurveys si les hooks sont désactivés
+      // ou si on est déjà en train de fermer des sondages
+      if (options.hooks !== false && !options._closingExpiredSurveys) {
+        // Marquer pour éviter la récursion
+        options._closingExpiredSurveys = true;
+        try {
+          await Survey.closeExpiredSurveys();
+        } catch (error) {
+          console.error('Erreur lors de la fermeture automatique des sondages:', error);
+        } finally {
+          delete options._closingExpiredSurveys;
+        }
+      }
     }
   }
 });
