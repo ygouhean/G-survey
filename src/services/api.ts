@@ -29,7 +29,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('auth-storage')
+      sessionStorage.removeItem('auth-storage')
       delete api.defaults.headers.common['Authorization']
       // Utiliser navigateTo au lieu de window.location pour une navigation SPA
       navigateTo('/login')

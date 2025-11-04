@@ -401,9 +401,29 @@ router.post('/', protect, canAccessSurvey, async (req, res, next) => {
     };
 
     if (location && location.coordinates && location.coordinates.length === 2) {
-      // Use raw SQL for PostGIS geometry
+      // Sécuriser contre les injections SQL en validant et en utilisant des paramètres
+      const longitude = parseFloat(location.coordinates[0])
+      const latitude = parseFloat(location.coordinates[1])
+      
+      // Vérifier que les coordonnées sont des nombres valides
+      if (isNaN(longitude) || isNaN(latitude)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Coordonnées géographiques invalides'
+        })
+      }
+      
+      // Vérifier que les coordonnées sont dans des plages valides
+      if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+        return res.status(400).json({
+          success: false,
+          message: 'Coordonnées géographiques hors limites'
+        })
+      }
+      
+      // Use raw SQL for PostGIS geometry avec des valeurs sécurisées
       responseData.location = sequelize.literal(
-        `ST_SetSRID(ST_MakePoint(${location.coordinates[0]}, ${location.coordinates[1]}), 4326)`
+        `ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`
       );
     }
 
@@ -646,9 +666,19 @@ router.post('/bulk', protect, async (req, res, next) => {
         };
 
         if (responseData.location && responseData.location.coordinates && responseData.location.coordinates.length === 2) {
-          bulkResponseData.location = sequelize.literal(
-            `ST_SetSRID(ST_MakePoint(${responseData.location.coordinates[0]}, ${responseData.location.coordinates[1]}), 4326)`
-          );
+          // Sécuriser contre les injections SQL
+          const longitude = parseFloat(responseData.location.coordinates[0])
+          const latitude = parseFloat(responseData.location.coordinates[1])
+          
+          // Vérifier que les coordonnées sont des nombres valides
+          if (!isNaN(longitude) && !isNaN(latitude)) {
+            // Vérifier que les coordonnées sont dans des plages valides
+            if (longitude >= -180 && longitude <= 180 && latitude >= -90 && latitude <= 90) {
+              bulkResponseData.location = sequelize.literal(
+                `ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)`
+              );
+            }
+          }
         }
 
         const response = await Response.create(bulkResponseData);

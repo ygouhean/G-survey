@@ -36,7 +36,7 @@ import LoadingSpinner from './components/LoadingSpinner'
 import SplashScreen from './components/SplashScreen'
 
 function App() {
-  const { checkAuth, loading } = useAuthStore()
+  const { checkAuth, loading, logout } = useAuthStore()
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
@@ -50,6 +50,43 @@ function App() {
       setShowSplash(false)
     }
   }, [])
+
+  // Gestion de la déconnexion automatique au retour sur la page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Quand l'utilisateur revient sur la page (onglet visible)
+      if (document.visibilityState === 'visible') {
+        // Vérifier si la session existe toujours dans sessionStorage
+        const authData = sessionStorage.getItem('auth-storage')
+        if (!authData) {
+          // Si pas de session, déconnecter
+          logout()
+        }
+      }
+    }
+
+    const handlePageShow = (e: PageTransitionEvent) => {
+      // Si l'utilisateur revient via le bouton retour du navigateur
+      if (e.persisted) {
+        // La page a été restaurée depuis le cache
+        const authData = sessionStorage.getItem('auth-storage')
+        if (!authData) {
+          logout()
+        }
+      }
+    }
+
+    // Écouter les changements de visibilité de la page
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Écouter l'événement pageshow (quand la page est affichée, y compris via le bouton retour)
+    window.addEventListener('pageshow', handlePageShow as EventListener)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('pageshow', handlePageShow as EventListener)
+    }
+  }, [logout])
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('hasSeenSplash', 'true')

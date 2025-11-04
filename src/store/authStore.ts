@@ -80,6 +80,8 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false
         })
         delete api.defaults.headers.common['Authorization']
+        // Nettoyer sessionStorage aussi
+        sessionStorage.removeItem('auth-storage')
       },
 
       checkAuth: async () => {
@@ -100,6 +102,7 @@ export const useAuthStore = create<AuthState>()(
             loading: false
           })
         } catch (error) {
+          // Si l'authentification échoue, déconnecter l'utilisateur
           set({
             user: null,
             token: null,
@@ -107,6 +110,7 @@ export const useAuthStore = create<AuthState>()(
             loading: false
           })
           delete api.defaults.headers.common['Authorization']
+          sessionStorage.removeItem('auth-storage')
         }
       },
 
@@ -129,6 +133,20 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: typeof window !== 'undefined' ? {
+        getItem: (name: string) => {
+          // Utiliser sessionStorage au lieu de localStorage
+          const value = sessionStorage.getItem(name)
+          return value ? JSON.parse(value) : null
+        },
+        setItem: (name: string, value: any) => {
+          // Utiliser sessionStorage au lieu de localStorage
+          sessionStorage.setItem(name, JSON.stringify(value))
+        },
+        removeItem: (name: string) => {
+          sessionStorage.removeItem(name)
+        }
+      } : undefined,
       partialize: (state) => ({ 
         token: state.token,
         user: state.user 
