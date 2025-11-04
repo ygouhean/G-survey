@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useAuthStore } from './store/authStore'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { setNavigationHandler } from './utils/navigation'
 
 // Layouts
@@ -33,13 +33,32 @@ import Settings from './pages/Settings'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingSpinner from './components/LoadingSpinner'
+import SplashScreen from './components/SplashScreen'
 
 function App() {
   const { checkAuth, loading } = useAuthStore()
+  const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
     checkAuth()
   }, [checkAuth])
+
+  // Vérifier si le splash screen a déjà été affiché (dans sessionStorage)
+  useEffect(() => {
+    const hasSeenSplash = sessionStorage.getItem('hasSeenSplash')
+    if (hasSeenSplash === 'true') {
+      setShowSplash(false)
+    }
+  }, [])
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('hasSeenSplash', 'true')
+    setShowSplash(false)
+  }
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />
+  }
 
   if (loading) {
     return <LoadingSpinner fullScreen />
