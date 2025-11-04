@@ -107,8 +107,34 @@ router.get('/:id', protect, canAccessSurvey, async (req, res, next) => {
 // @access  Private (Admin/Supervisor)
 router.post('/', protect, authorize('admin', 'supervisor'), async (req, res, next) => {
   try {
+    // S'assurer que questions est un tableau valide
+    let questions = req.body.questions;
+    if (!Array.isArray(questions)) {
+      questions = [];
+    }
+    
+    // S'assurer que settings est un objet valide
+    let settings = req.body.settings;
+    if (!settings || typeof settings !== 'object') {
+      settings = {
+        allowAnonymous: false,
+        requireGeolocation: false,
+        allowOfflineSubmission: true,
+        showProgressBar: true,
+        randomizeQuestions: false
+      };
+    }
+
     const surveyData = {
-      ...req.body,
+      title: req.body.title,
+      description: req.body.description || null,
+      questions: questions, // Sequelize sérialisera automatiquement en JSONB
+      status: req.body.status || 'draft',
+      targetResponses: req.body.targetResponses || 0,
+      startDate: req.body.startDate || null,
+      endDate: req.body.endDate || null,
+      originalEndDate: req.body.originalEndDate || null,
+      settings: settings, // Sequelize sérialisera automatiquement en JSONB
       createdById: req.user.id
     };
 

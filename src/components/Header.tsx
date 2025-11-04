@@ -1,5 +1,6 @@
 import { useAuthStore } from '../store/authStore'
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown'
 import notificationService from '../services/notificationService'
 
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 export default function Header({ toggleSidebar }: HeaderProps) {
   const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
   const [showDropdown, setShowDropdown] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
@@ -118,7 +120,8 @@ export default function Header({ toggleSidebar }: HeaderProps) {
               <button
                 onClick={() => {
                   logout()
-                  window.location.href = '/login'
+                  // Utiliser navigate au lieu de window.location pour éviter les erreurs 404
+                  navigate('/login')
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
