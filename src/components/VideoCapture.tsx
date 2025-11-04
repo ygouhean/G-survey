@@ -218,6 +218,7 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
             playsInline
             muted
             className="max-w-full max-h-full"
+            style={{ objectFit: 'contain' }}
           />
         </div>
 
