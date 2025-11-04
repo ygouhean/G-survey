@@ -10,6 +10,17 @@ const sequelize = new Sequelize(
     port: process.env.POSTGRES_PORT || 5432,
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    dialectOptions: {
+      // SSL requis pour Supabase et autres services cloud
+      ssl: process.env.POSTGRES_HOST && process.env.POSTGRES_HOST.includes('supabase') 
+        ? {
+            require: true,
+            rejectUnauthorized: false // Accepte les certificats auto-signés (Supabase)
+          }
+        : false,
+      // Timeout de connexion
+      connectTimeout: 10000
+    },
     pool: {
       max: 5,
       min: 0,
@@ -50,18 +61,41 @@ const connectDB = async () => {
     await createDefaultAdmin();
   } catch (error) {
     console.error(`❌ Error connecting to PostgreSQL: ${error.message}`);
-    console.error('\n💡 Vérifications à faire:');
-    console.error('   1. Le service PostgreSQL est-il démarré ? (services.msc sur Windows)');
-    console.error('   2. Les variables d\'environnement sont-elles définies dans .env ?');
-    console.error('   3. Le mot de passe dans .env correspond-il au mot de passe PostgreSQL ?');
-    console.error('   4. La base de données "gsurvey" existe-t-elle ?');
-    console.error('   5. L\'extension PostGIS est-elle activée ? (CREATE EXTENSION postgis;)');
+    
+    // Messages d'aide spécifiques selon le type d'erreur
+    if (error.message.includes('ENETUNREACH') || error.message.includes('ECONNREFUSED')) {
+      console.error('\n⚠️  Erreur de connexion réseau détectée');
+      if (process.env.POSTGRES_HOST && process.env.POSTGRES_HOST.includes('supabase')) {
+        console.error('   → Connexion Supabase détectée');
+        console.error('   → SSL devrait être activé automatiquement');
+        console.error('   → Vérifiez que toutes les variables POSTGRES_* sont correctement définies');
+        console.error('   → Vérifiez que le mot de passe Supabase est correct');
+        console.error('   → Vérifiez que PostGIS est activé dans Supabase (SQL Editor)');
+      } else {
+        console.error('   → Pour Supabase, assurez-vous que POSTGRES_HOST contient "supabase"');
+      }
+    } else if (error.message.includes('password') || error.message.includes('authentication')) {
+      console.error('\n⚠️  Erreur d\'authentification');
+      console.error('   → Vérifiez POSTGRES_USER et POSTGRES_PASSWORD');
+      console.error('   → Pour Supabase, régénérez le mot de passe si nécessaire');
+    } else if (error.message.includes('database') || error.message.includes('does not exist')) {
+      console.error('\n⚠️  Erreur de base de données');
+      console.error('   → Vérifiez POSTGRES_DB');
+      console.error('   → Pour Supabase, utilisez généralement "postgres" (base par défaut)');
+    }
+    
+    console.error('\n💡 Vérifications générales:');
+    console.error('   1. Les variables d\'environnement sont-elles définies ?');
+    console.error('   2. Le service PostgreSQL est-il démarré ? (local uniquement)');
+    console.error('   3. La base de données existe-t-elle ?');
+    console.error('   4. L\'extension PostGIS est-elle activée ? (CREATE EXTENSION postgis;)');
     console.error(`\n   Configuration actuelle:`);
     console.error(`   - Host: ${process.env.POSTGRES_HOST || 'localhost'}`);
     console.error(`   - Port: ${process.env.POSTGRES_PORT || 5432}`);
     console.error(`   - Database: ${process.env.POSTGRES_DB || 'gsurvey'}`);
     console.error(`   - User: ${process.env.POSTGRES_USER || 'postgres'}`);
-    console.error(`\n   Consultez INSTALL_WINDOWS.md pour un guide d'installation complet.`);
+    console.error(`   - SSL: ${process.env.POSTGRES_HOST && process.env.POSTGRES_HOST.includes('supabase') ? 'Activé (auto)' : 'Désactivé'}`);
+    console.error(`\n   Consultez DEPLOIEMENT_VERCEL_RENDER.md pour la configuration Supabase.`);
     process.exit(1);
   }
 };

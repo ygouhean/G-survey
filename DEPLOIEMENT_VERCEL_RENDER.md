@@ -73,9 +73,38 @@ Notes:
 ---
 
 ## 4) Base de données (recommandé: Supabase + PostGIS)
-- Créez un projet Supabase → Database
-- Activez l’extension PostGIS si nécessaire (souvent activée par défaut)
-- Renseignez les variables `POSTGRES_*` côté Render avec les valeurs Supabase
+
+### Configuration Supabase
+
+1. **Créer un projet Supabase** :
+   - Allez sur [supabase.com](https://supabase.com)
+   - Créez un nouveau projet
+   - Notez le mot de passe de la base de données (vous ne pourrez plus le voir après)
+
+2. **Récupérer les informations de connexion** :
+   - Dans Supabase : **Settings** → **Database**
+   - Section **Connection string** → **URI** ou **Connection pooling**
+   - Utilisez l'**URI directe** (pas le pooler) pour les variables d'environnement
+   - Format : `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
+
+3. **Extraire les variables** :
+   - `POSTGRES_HOST` = `db.[PROJECT-REF].supabase.co` (ex: `db.udfhiiqnozfijhejdhuu.supabase.co`)
+   - `POSTGRES_PORT` = `5432`
+   - `POSTGRES_DB` = **`postgres`** (base par défaut Supabase - ⚠️ utilisez "postgres", pas "gsurvey")
+   - `POSTGRES_USER` = `postgres`
+   - `POSTGRES_PASSWORD` = le mot de passe que vous avez noté
+   
+   **Note importante** : Supabase utilise `postgres` comme nom de base par défaut. Si vous créez vos tables dans cette base, utilisez `postgres` comme valeur de `POSTGRES_DB`. Vous pouvez créer une base séparée si nécessaire, mais `postgres` fonctionne parfaitement.
+
+4. **Activer PostGIS** :
+   - Dans Supabase : **SQL Editor**
+   - Exécutez : `CREATE EXTENSION IF NOT EXISTS postgis;`
+   - Vérifiez : `SELECT PostGIS_version();`
+
+5. **Important** :
+   - ✅ Le code configure automatiquement SSL pour Supabase (détecte "supabase" dans le host)
+   - ✅ Pas besoin de configuration SSL supplémentaire
+   - ⚠️ Assurez-vous que `POSTGRES_HOST` contient bien "supabase" pour activer SSL automatiquement
 
 ---
 
@@ -105,10 +134,24 @@ Notes:
 ---
 
 ## 7) Dépannage rapide
-- 400/401 Auth: vérifier `JWT_SECRET`, emails/mots de passe, et la DB.
-- Uploads échouent: vérifier `CLOUDINARY_*` et que `server/services/cloudinary.js` est bien chargé.
-- Images manquantes côté front: vérifier que les fichiers existent dans `public/images/` et que les chemins sont `/images/...`.
-- Emails non reçus: vérifier `SMTP_*`, port/secure, et la console Render.
+
+### Erreur de connexion PostgreSQL
+- **Erreur `ENETUNREACH` ou `ECONNREFUSED`** :
+  - ✅ Vérifiez que `POSTGRES_HOST` contient "supabase" (SSL activé automatiquement)
+  - ✅ Vérifiez que toutes les variables `POSTGRES_*` sont correctement définies dans Render
+  - ✅ Vérifiez que le mot de passe Supabase est correct (régénérer si nécessaire)
+  - ✅ Vérifiez que PostGIS est activé dans Supabase
+  - ✅ Vérifiez les logs Render pour voir les détails de l'erreur
+
+- **Erreur SSL** :
+  - Le code configure automatiquement SSL pour Supabase
+  - Si l'erreur persiste, vérifiez que `POSTGRES_HOST` contient bien "supabase"
+
+### Autres erreurs
+- **400/401 Auth** : vérifier `JWT_SECRET`, emails/mots de passe, et la DB.
+- **Uploads échouent** : vérifier `CLOUDINARY_*` et que `server/services/cloudinary.js` est bien chargé.
+- **Images manquantes côté front** : vérifier que les fichiers existent dans `public/images/` et que les chemins sont `/images/...`.
+- **Emails non reçus** : vérifier `SMTP_*`, port/secure, et la console Render.
 
 ---
 
