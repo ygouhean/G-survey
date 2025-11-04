@@ -145,7 +145,7 @@ export default function SurveyEdit() {
       }
 
       await surveyService.updateSurvey(id!, surveyData)
-      navigate(`/surveys/${id}`)
+      navigate(`/surveys/${id}`, { replace: true })
     } catch (error: any) {
       console.error('Error updating survey:', error)
       alert(error.response?.data?.message || 'Erreur lors de la mise à jour du sondage')

@@ -391,9 +391,9 @@ export default function MapView() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Bouton retour si on vient d'un sondage spécifique */}
-            {isFixedSurvey && (
+            {isFixedSurvey && id && (
               <button
-                onClick={() => navigate(`/surveys/${id}`)}
+                onClick={() => navigate(`/surveys/${id}`, { replace: false })}
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                 title="Retour au sondage"
               >

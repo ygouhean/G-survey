@@ -67,17 +67,19 @@ function App() {
           {/* Surveys */}
           <Route path="/surveys" element={<SurveyList />} />
           <Route path="/surveys/create" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyCreate /></ProtectedRoute>} />
-          <Route path="/surveys/:id/edit" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyEdit /></ProtectedRoute>} />
-          <Route path="/surveys/:id" element={<SurveyView />} />
+          
+          {/* Routes spécifiques pour un sondage (doivent être AVANT la route générique /surveys/:id) */}
           <Route path="/surveys/:id/respond" element={<SurveyRespond />} />
+          <Route path="/surveys/:id/edit" element={<ProtectedRoute roles={['admin', 'supervisor']}><SurveyEdit /></ProtectedRoute>} />
+          <Route path="/surveys/:id/analytics" element={<Analytics />} />
+          <Route path="/surveys/:id/map" element={<MapView />} />
+          <Route path="/surveys/:id" element={<SurveyView />} />
           
           {/* Map */}
           <Route path="/map" element={<MapView />} />
-          <Route path="/surveys/:id/map" element={<MapView />} />
           
           {/* Analytics */}
           <Route path="/analytics" element={<Analytics />} />
-          <Route path="/surveys/:id/analytics" element={<Analytics />} />
           
           {/* Admin */}
           <Route path="/users" element={<ProtectedRoute roles={['admin']}><UserManagement /></ProtectedRoute>} />

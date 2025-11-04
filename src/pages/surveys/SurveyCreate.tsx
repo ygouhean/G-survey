@@ -112,10 +112,11 @@ export default function SurveyCreate() {
       // La réponse est déjà dans response.data (surveyService retourne response.data)
       const surveyId = response.data?.id || response.data?.data?.id
       if (surveyId) {
-        navigate(`/surveys/${surveyId}`)
+        // Utiliser window.location pour forcer un rechargement complet si nécessaire
+        navigate(`/surveys/${surveyId}`, { replace: true })
       } else {
         // Si pas d'ID, rediriger vers la liste des sondages
-        navigate('/surveys')
+        navigate('/surveys', { replace: true })
       }
     } catch (error: any) {
       console.error('Error creating survey:', error)
