@@ -59,7 +59,9 @@ END $$;
 CREATE TABLE IF NOT EXISTS teams (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
     "supervisorId" UUID,
+    "isActive" BOOLEAN DEFAULT true NOT NULL,
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );

@@ -109,7 +109,14 @@ export default function SurveyCreate() {
       }
 
       const response = await surveyService.createSurvey(surveyData)
-      navigate(`/surveys/${response.data.id}`)
+      // La réponse est déjà dans response.data (surveyService retourne response.data)
+      const surveyId = response.data?.id || response.data?.data?.id
+      if (surveyId) {
+        navigate(`/surveys/${surveyId}`)
+      } else {
+        // Si pas d'ID, rediriger vers la liste des sondages
+        navigate('/surveys')
+      }
     } catch (error: any) {
       console.error('Error creating survey:', error)
       alert(error.response?.data?.message || 'Erreur lors de la création du sondage')
