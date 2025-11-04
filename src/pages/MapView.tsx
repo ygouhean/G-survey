@@ -323,13 +323,15 @@ export default function MapView() {
         startDate,
         endDate,
         customStartDate,
-        customEndDate
+        customEndDate,
+        id,
+        isFixedSurvey
       })
       
       let responsesRes
       
       // Si on a un ID fixe dans l'URL, toujours l'utiliser
-      const surveyIdToUse = isFixedSurvey ? id : selectedSurveyId
+      const surveyIdToUse = isFixedSurvey && id ? id : selectedSurveyId
       
       if (surveyIdToUse) {
         // Charger pour un sondage spécifique
@@ -341,8 +343,12 @@ export default function MapView() {
         
         // Charger les infos du sondage si pas déjà chargé
         if (!survey || survey.id !== surveyIdToUse) {
-          const surveyRes = await surveyService.getSurvey(surveyIdToUse)
-          setSurvey(surveyRes.data)
+          try {
+            const surveyRes = await surveyService.getSurvey(surveyIdToUse)
+            setSurvey(surveyRes.data)
+          } catch (surveyError) {
+            console.error('Error loading survey:', surveyError)
+          }
         }
       } else {
         // Charger toutes les réponses
@@ -355,7 +361,7 @@ export default function MapView() {
         setSurvey(null)
       }
       
-      const data = responsesRes.data || []
+      const data = responsesRes?.data || []
       setResponses(data)
       
       // Centrer la carte sur les réponses
@@ -365,6 +371,7 @@ export default function MapView() {
       }
     } catch (error) {
       console.error('Error loading map data:', error)
+      setResponses([]) // S'assurer que responses est un tableau vide en cas d'erreur
     } finally {
       setLoading(false)
     }
@@ -577,9 +584,19 @@ export default function MapView() {
             <div className="text-center">
               <div className="text-6xl mb-4">🗺️</div>
               <h3 className="text-xl font-semibold mb-2">Aucune donnée géolocalisée</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Ajustez les filtres pour voir les réponses
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {isFixedSurvey && survey 
+                  ? `Aucune réponse géolocalisée pour "${survey.title}"`
+                  : 'Ajustez les filtres pour voir les réponses'}
               </p>
+              {isFixedSurvey && id && (
+                <button
+                  onClick={() => navigate(`/surveys/${id}`, { replace: false })}
+                  className="btn btn-secondary"
+                >
+                  ← Retour au sondage
+                </button>
+              )}
             </div>
           </div>
         ) : (

@@ -46,21 +46,38 @@ export default function SurveyEdit() {
 
   const loadSurvey = async () => {
     try {
-      const response = await surveyService.getSurvey(id!)
+      if (!id) {
+        setLoading(false)
+        navigate('/surveys', { replace: true })
+        return
+      }
+      
+      const response = await surveyService.getSurvey(id)
       const surveyData = response.data
       
+      if (!surveyData) {
+        throw new Error('Sondage non trouvé')
+      }
+      
       setSurvey(surveyData)
-      setTitle(surveyData.title)
+      setTitle(surveyData.title || '')
       setDescription(surveyData.description || '')
-      setQuestions(surveyData.questions)
-      setTargetResponses(surveyData.targetResponses)
+      setQuestions(surveyData.questions || [])
+      setTargetResponses(surveyData.targetResponses || 0)
       setStartDate(surveyData.startDate ? new Date(surveyData.startDate).toISOString().split('T')[0] : '')
       setEndDate(surveyData.endDate ? new Date(surveyData.endDate).toISOString().split('T')[0] : '')
-      setSettings(surveyData.settings)
-    } catch (error) {
+      setSettings(surveyData.settings || {
+        allowAnonymous: false,
+        requireGeolocation: false,
+        allowOfflineSubmission: true,
+        showProgressBar: true,
+        randomizeQuestions: false
+      })
+    } catch (error: any) {
       console.error('Error loading survey:', error)
-      alert('Erreur lors du chargement du sondage')
-      navigate('/surveys')
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors du chargement du sondage'
+      alert(errorMessage)
+      navigate('/surveys', { replace: true })
     } finally {
       setLoading(false)
     }

@@ -204,31 +204,45 @@ export default function Analytics() {
 
   const loadAnalytics = async () => {
     try {
-      if (id) {
-        const { startDate, endDate } = getDateRange()
-        
-        console.log('📊 Analytics loadData - Filters:', {
-          periodType,
-          selectedAgentId,
-          startDate,
-          endDate,
-          customStartDate,
-          customEndDate
-        })
-        
-        const [surveyRes, analyticsRes] = await Promise.all([
-          surveyService.getSurvey(id),
-          analyticsService.getSurveyAnalytics(id, {
-            agentId: selectedAgentId || undefined,
-            startDate,
-            endDate
-          })
-        ])
-        setSurvey(surveyRes.data)
-        setAnalytics(analyticsRes.data)
+      if (!id) {
+        setLoading(false)
+        return
       }
+      
+      setLoading(true)
+      const { startDate, endDate } = getDateRange()
+      
+      console.log('📊 Analytics loadData - Filters:', {
+        periodType,
+        selectedAgentId,
+        startDate,
+        endDate,
+        customStartDate,
+        customEndDate
+      })
+      
+      const [surveyRes, analyticsRes] = await Promise.all([
+        surveyService.getSurvey(id),
+        analyticsService.getSurveyAnalytics(id, {
+          agentId: selectedAgentId || undefined,
+          startDate,
+          endDate
+        })
+      ])
+      setSurvey(surveyRes.data)
+      setAnalytics(analyticsRes.data)
     } catch (error) {
       console.error('Error loading analytics:', error)
+      // Ne pas laisser analytics à null si une erreur survient avec un id valide
+      if (id) {
+        // Essayer de charger au moins le sondage
+        try {
+          const surveyRes = await surveyService.getSurvey(id)
+          setSurvey(surveyRes.data)
+        } catch (surveyError) {
+          console.error('Error loading survey:', surveyError)
+        }
+      }
     } finally {
       setLoading(false)
     }
@@ -238,7 +252,7 @@ export default function Analytics() {
     return <LoadingSpinner fullScreen />
   }
 
-  if (!analytics) {
+  if (!id && !analytics) {
     return (
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📊</div>
@@ -246,6 +260,44 @@ export default function Analytics() {
         <p className="text-gray-600 dark:text-gray-400">
           Les analytics s'afficheront ici
         </p>
+      </div>
+    )
+  }
+
+  if (id && !analytics) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">📊</div>
+        <h2 className="text-2xl font-bold mb-2">Chargement des analytics...</h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          {survey?.title || 'Sondage'}
+        </p>
+        <button
+          onClick={() => navigate(`/surveys/${id}`, { replace: false })}
+          className="mt-4 btn btn-secondary"
+        >
+          ← Retour au sondage
+        </button>
+      </div>
+    )
+  }
+
+  if (!analytics) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">📊</div>
+        <h2 className="text-2xl font-bold mb-2">Aucune donnée disponible</h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Les analytics ne sont pas encore disponibles pour ce sondage
+        </p>
+        {id && (
+          <button
+            onClick={() => navigate(`/surveys/${id}`, { replace: false })}
+            className="mt-4 btn btn-secondary"
+          >
+            ← Retour au sondage
+          </button>
+        )}
       </div>
     )
   }
@@ -637,12 +689,14 @@ export default function Analytics() {
             <div className="text-center">
               <div className="text-4xl mb-2">🗺️</div>
               <div>
-                <a
-                  href={`/surveys/${id}/map`}
-                  className="btn btn-primary"
-                >
-                  Voir sur la carte
-                </a>
+                {id && (
+                  <button
+                    onClick={() => navigate(`/surveys/${id}/map`, { replace: false })}
+                    className="btn btn-primary"
+                  >
+                    Voir sur la carte
+                  </button>
+                )}
               </div>
             </div>
           </div>

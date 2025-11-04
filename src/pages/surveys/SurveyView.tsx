@@ -25,15 +25,28 @@ export default function SurveyView() {
 
   const loadData = async () => {
     try {
+      if (!id) {
+        setLoading(false)
+        navigate('/surveys', { replace: true })
+        return
+      }
+      
       const [surveyRes, responsesRes] = await Promise.all([
-        surveyService.getSurvey(id!),
-        responseService.getSurveyResponses(id!)
+        surveyService.getSurvey(id),
+        responseService.getSurveyResponses(id).catch(() => ({ data: [] })) // Ne pas échouer si les réponses ne peuvent pas être chargées
       ])
       
+      if (!surveyRes.data) {
+        throw new Error('Sondage non trouvé')
+      }
+      
       setSurvey(surveyRes.data)
-      setResponses(responsesRes.data)
-    } catch (error) {
+      setResponses(responsesRes.data || [])
+    } catch (error: any) {
       console.error('Error loading data:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors du chargement du sondage'
+      alert(errorMessage)
+      navigate('/surveys', { replace: true })
     } finally {
       setLoading(false)
     }
