@@ -264,8 +264,9 @@ export default function SurveyRespond() {
       alert('✅ Réponse soumise avec succès !')
       navigate(`/surveys/${id}`)
     } catch (error: any) {
-      console.error('Error submitting response:', error)
-      alert(error.response?.data?.message || 'Erreur lors de la soumission')
+      logger.error('Error submitting response:', error)
+      const errorMessage = error.response?.data?.message || 'Erreur lors de la soumission de la réponse'
+      alert(`⚠️ ${errorMessage}`)
     } finally {
       setSubmitting(false)
     }

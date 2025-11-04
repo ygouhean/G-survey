@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import NotificationDropdown from './NotificationDropdown'
 import notificationService from '../services/notificationService'
+import { logger } from '../utils/logger'
 
 interface HeaderProps {
   toggleSidebar: () => void

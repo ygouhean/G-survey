@@ -6,6 +6,7 @@ import responseService from '../../services/responseService'
 import exportService from '../../services/exportService'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import SurveyAssignModal from '../../components/SurveyAssignModal'
+import { logger } from '../../utils/logger'
 
 export default function SurveyView() {
   const { id } = useParams()
@@ -186,10 +187,10 @@ export default function SurveyView() {
       } else {
         await exportService.exportToJSON(id!, startDate, endDate)
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Error exporting:', error)
-      alert(error.response?.data?.message || 'Erreur lors de l\'export des données')
-      alert('Erreur lors de l\'export')
+      const errorMessage = error.response?.data?.message || 'Erreur lors de l\'export des données'
+      alert(`⚠️ ${errorMessage}`)
     }
   }
 
