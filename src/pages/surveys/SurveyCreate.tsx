@@ -102,21 +102,58 @@ export default function SurveyCreate() {
 
     setSaving(true)
     try {
+      // Nettoyer les questions pour ne garder que les propriétés sérialisables
+      const cleanedQuestions = Array.isArray(questions) ? questions.map(q => {
+        const cleaned: any = {
+          id: q.id,
+          type: q.type,
+          label: q.label || '',
+          required: Boolean(q.required),
+          order: Number(q.order) || 0
+        }
+        
+        // Ajouter les propriétés optionnelles seulement si elles existent
+        if (q.placeholder) cleaned.placeholder = q.placeholder
+        if (q.options && Array.isArray(q.options)) cleaned.options = q.options
+        if (q.validation && typeof q.validation === 'object') cleaned.validation = q.validation
+        if (q.conditionalLogic && typeof q.conditionalLogic === 'object') cleaned.conditionalLogic = q.conditionalLogic
+        if (q.csatConfig && typeof q.csatConfig === 'object') cleaned.csatConfig = q.csatConfig
+        if (q.maxSelections) cleaned.maxSelections = Number(q.maxSelections)
+        if (q.demographicType) cleaned.demographicType = q.demographicType
+        if (q.matrixRows && Array.isArray(q.matrixRows)) cleaned.matrixRows = q.matrixRows
+        if (q.matrixColumns && Array.isArray(q.matrixColumns)) cleaned.matrixColumns = q.matrixColumns
+        if (q.images && Array.isArray(q.images)) cleaned.images = q.images
+        if (q.sliderConfig && typeof q.sliderConfig === 'object') cleaned.sliderConfig = q.sliderConfig
+        if (q.fileConfig && typeof q.fileConfig === 'object') cleaned.fileConfig = q.fileConfig
+        if (q.phoneConfig && typeof q.phoneConfig === 'object') cleaned.phoneConfig = q.phoneConfig
+        
+        return cleaned
+      }) : []
+
+      // Nettoyer les settings pour ne garder que les valeurs valides
+      const cleanedSettings = settings && typeof settings === 'object' ? {
+        allowAnonymous: Boolean(settings.allowAnonymous),
+        requireGeolocation: Boolean(settings.requireGeolocation),
+        allowOfflineSubmission: Boolean(settings.allowOfflineSubmission !== false),
+        showProgressBar: Boolean(settings.showProgressBar !== false),
+        randomizeQuestions: Boolean(settings.randomizeQuestions)
+      } : {
+        allowAnonymous: false,
+        requireGeolocation: false,
+        allowOfflineSubmission: true,
+        showProgressBar: true,
+        randomizeQuestions: false
+      }
+
       const surveyData: any = {
-        title,
-        description: description || null,
-        questions: Array.isArray(questions) ? questions : [],
+        title: title.trim(),
+        description: description ? description.trim() : null,
+        questions: cleanedQuestions,
         status,
-        targetResponses: targetResponses || 0,
+        targetResponses: Number(targetResponses) || 0,
         startDate: startDate ? new Date(startDate).toISOString() : null,
         endDate: endDate ? new Date(endDate).toISOString() : null,
-        settings: settings || {
-          allowAnonymous: false,
-          requireGeolocation: false,
-          allowOfflineSubmission: true,
-          showProgressBar: true,
-          randomizeQuestions: false
-        }
+        settings: cleanedSettings
       }
 
       // Sauvegarder la date de fin originale lors de la création

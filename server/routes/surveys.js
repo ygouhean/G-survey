@@ -107,15 +107,55 @@ router.get('/:id', protect, canAccessSurvey, async (req, res, next) => {
 // @access  Private (Admin/Supervisor)
 router.post('/', protect, authorize('admin', 'supervisor'), async (req, res, next) => {
   try {
-    // S'assurer que questions est un tableau valide
+    // Nettoyer et valider les questions
     let questions = req.body.questions;
     if (!Array.isArray(questions)) {
       questions = [];
     }
     
-    // S'assurer que settings est un objet valide
+    // Nettoyer chaque question pour ne garder que les propriétés sérialisables
+    questions = questions.map(q => {
+      const cleaned = {
+        id: q.id || `question_${Date.now()}_${Math.random()}`,
+        type: q.type || 'text',
+        label: q.label || '',
+        required: Boolean(q.required),
+        order: Number(q.order) || 0
+      };
+      
+      // Ajouter les propriétés optionnelles seulement si elles existent et sont valides
+      if (q.placeholder && typeof q.placeholder === 'string') cleaned.placeholder = q.placeholder;
+      if (q.options && Array.isArray(q.options)) cleaned.options = q.options;
+      if (q.validation && typeof q.validation === 'object' && !Array.isArray(q.validation)) {
+        cleaned.validation = q.validation;
+      }
+      if (q.conditionalLogic && typeof q.conditionalLogic === 'object' && !Array.isArray(q.conditionalLogic)) {
+        cleaned.conditionalLogic = q.conditionalLogic;
+      }
+      if (q.csatConfig && typeof q.csatConfig === 'object' && !Array.isArray(q.csatConfig)) {
+        cleaned.csatConfig = q.csatConfig;
+      }
+      if (q.maxSelections) cleaned.maxSelections = Number(q.maxSelections);
+      if (q.demographicType && typeof q.demographicType === 'string') cleaned.demographicType = q.demographicType;
+      if (q.matrixRows && Array.isArray(q.matrixRows)) cleaned.matrixRows = q.matrixRows;
+      if (q.matrixColumns && Array.isArray(q.matrixColumns)) cleaned.matrixColumns = q.matrixColumns;
+      if (q.images && Array.isArray(q.images)) cleaned.images = q.images;
+      if (q.sliderConfig && typeof q.sliderConfig === 'object' && !Array.isArray(q.sliderConfig)) {
+        cleaned.sliderConfig = q.sliderConfig;
+      }
+      if (q.fileConfig && typeof q.fileConfig === 'object' && !Array.isArray(q.fileConfig)) {
+        cleaned.fileConfig = q.fileConfig;
+      }
+      if (q.phoneConfig && typeof q.phoneConfig === 'object' && !Array.isArray(q.phoneConfig)) {
+        cleaned.phoneConfig = q.phoneConfig;
+      }
+      
+      return cleaned;
+    });
+    
+    // Nettoyer et valider les settings
     let settings = req.body.settings;
-    if (!settings || typeof settings !== 'object') {
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
       settings = {
         allowAnonymous: false,
         requireGeolocation: false,
@@ -123,18 +163,27 @@ router.post('/', protect, authorize('admin', 'supervisor'), async (req, res, nex
         showProgressBar: true,
         randomizeQuestions: false
       };
+    } else {
+      // Nettoyer les settings pour ne garder que les valeurs booléennes valides
+      settings = {
+        allowAnonymous: Boolean(settings.allowAnonymous),
+        requireGeolocation: Boolean(settings.requireGeolocation),
+        allowOfflineSubmission: settings.allowOfflineSubmission !== false,
+        showProgressBar: settings.showProgressBar !== false,
+        randomizeQuestions: Boolean(settings.randomizeQuestions)
+      };
     }
 
     const surveyData = {
-      title: req.body.title,
-      description: req.body.description || null,
-      questions: questions, // Sequelize sérialisera automatiquement en JSONB
+      title: req.body.title?.trim() || '',
+      description: req.body.description?.trim() || null,
+      questions: questions,
       status: req.body.status || 'draft',
-      targetResponses: req.body.targetResponses || 0,
+      targetResponses: Number(req.body.targetResponses) || 0,
       startDate: req.body.startDate || null,
       endDate: req.body.endDate || null,
       originalEndDate: req.body.originalEndDate || null,
-      settings: settings, // Sequelize sérialisera automatiquement en JSONB
+      settings: settings,
       createdById: req.user.id
     };
 
@@ -169,6 +218,16 @@ router.post('/', protect, authorize('admin', 'supervisor'), async (req, res, nex
       data: survey
     });
   } catch (error) {
+    console.error('❌ Error creating survey:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    if (error.name === 'SequelizeDatabaseError' && error.message && error.message.includes('json')) {
+      console.error('Request body:', JSON.stringify(req.body, null, 2));
+      return res.status(400).json({
+        success: false,
+        message: 'Erreur de format JSON. Veuillez vérifier les données du sondage (questions et settings).'
+      });
+    }
     next(error);
   }
 });
@@ -195,8 +254,63 @@ router.put('/:id', protect, authorize('admin', 'supervisor'), async (req, res, n
       });
     }
 
+    // Nettoyer et valider les questions si elles sont présentes
+    let updateData = { ...req.body };
+    if (updateData.questions !== undefined) {
+      if (!Array.isArray(updateData.questions)) {
+        updateData.questions = [];
+      } else {
+        updateData.questions = updateData.questions.map(q => {
+          const cleaned = {
+            id: q.id || `question_${Date.now()}_${Math.random()}`,
+            type: q.type || 'text',
+            label: q.label || '',
+            required: Boolean(q.required),
+            order: Number(q.order) || 0
+          };
+          
+          if (q.placeholder && typeof q.placeholder === 'string') cleaned.placeholder = q.placeholder;
+          if (q.options && Array.isArray(q.options)) cleaned.options = q.options;
+          if (q.validation && typeof q.validation === 'object' && !Array.isArray(q.validation)) cleaned.validation = q.validation;
+          if (q.conditionalLogic && typeof q.conditionalLogic === 'object' && !Array.isArray(q.conditionalLogic)) cleaned.conditionalLogic = q.conditionalLogic;
+          if (q.csatConfig && typeof q.csatConfig === 'object' && !Array.isArray(q.csatConfig)) cleaned.csatConfig = q.csatConfig;
+          if (q.maxSelections) cleaned.maxSelections = Number(q.maxSelections);
+          if (q.demographicType && typeof q.demographicType === 'string') cleaned.demographicType = q.demographicType;
+          if (q.matrixRows && Array.isArray(q.matrixRows)) cleaned.matrixRows = q.matrixRows;
+          if (q.matrixColumns && Array.isArray(q.matrixColumns)) cleaned.matrixColumns = q.matrixColumns;
+          if (q.images && Array.isArray(q.images)) cleaned.images = q.images;
+          if (q.sliderConfig && typeof q.sliderConfig === 'object' && !Array.isArray(q.sliderConfig)) cleaned.sliderConfig = q.sliderConfig;
+          if (q.fileConfig && typeof q.fileConfig === 'object' && !Array.isArray(q.fileConfig)) cleaned.fileConfig = q.fileConfig;
+          if (q.phoneConfig && typeof q.phoneConfig === 'object' && !Array.isArray(q.phoneConfig)) cleaned.phoneConfig = q.phoneConfig;
+          
+          return cleaned;
+        });
+      }
+    }
+
+    // Nettoyer et valider les settings si présents
+    if (updateData.settings !== undefined) {
+      if (!updateData.settings || typeof updateData.settings !== 'object' || Array.isArray(updateData.settings)) {
+        updateData.settings = {
+          allowAnonymous: false,
+          requireGeolocation: false,
+          allowOfflineSubmission: true,
+          showProgressBar: true,
+          randomizeQuestions: false
+        };
+      } else {
+        updateData.settings = {
+          allowAnonymous: Boolean(updateData.settings.allowAnonymous),
+          requireGeolocation: Boolean(updateData.settings.requireGeolocation),
+          allowOfflineSubmission: updateData.settings.allowOfflineSubmission !== false,
+          showProgressBar: updateData.settings.showProgressBar !== false,
+          randomizeQuestions: Boolean(updateData.settings.randomizeQuestions)
+        };
+      }
+    }
+
     // Update survey
-    await survey.update(req.body);
+    await survey.update(updateData);
 
     // Handle assignedTo if provided
     if (req.body.assignedTo && Array.isArray(req.body.assignedTo)) {
@@ -224,6 +338,16 @@ router.put('/:id', protect, authorize('admin', 'supervisor'), async (req, res, n
       data: survey
     });
   } catch (error) {
+    console.error('❌ Error updating survey:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    if (error.name === 'SequelizeDatabaseError' && error.message && error.message.includes('json')) {
+      console.error('Request body:', JSON.stringify(req.body, null, 2));
+      return res.status(400).json({
+        success: false,
+        message: 'Erreur de format JSON. Veuillez vérifier les données du sondage (questions et settings).'
+      });
+    }
     next(error);
   }
 });
