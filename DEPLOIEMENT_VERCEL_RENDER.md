@@ -143,7 +143,13 @@ Notes:
 3. Ouvrez le fichier `server/migrations/init-database.sql` du projet
 4. Copiez tout le contenu et collez-le dans l'éditeur SQL de Supabase
 5. Cliquez sur **Run** pour exécuter le script
-6. Vérifiez que les tables sont créées :
+6. Si la table `teams` existe déjà sans les colonnes `description` et `isActive`, exécutez également :
+   ```sql
+   -- Voir le fichier server/migrations/add-team-description-column.sql
+   ALTER TABLE teams ADD COLUMN IF NOT EXISTS description TEXT;
+   ALTER TABLE teams ADD COLUMN IF NOT EXISTS "isActive" BOOLEAN DEFAULT true NOT NULL;
+   ```
+7. Vérifiez que les tables sont créées :
    ```sql
    SELECT table_name 
    FROM information_schema.tables 
