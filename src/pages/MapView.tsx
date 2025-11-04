@@ -6,6 +6,7 @@ import responseService from '../services/responseService'
 import surveyService from '../services/surveyService'
 import authService from '../services/authService'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { logger } from '../utils/logger'
 import 'leaflet/dist/leaflet.css'
 
 // Custom Select Component with Scroll
@@ -152,11 +153,33 @@ const createMarkerIcon = (score?: number) => {
   })
 }
 
-function MapUpdater({ center, zoom }: { center: [number, number], zoom: number }) {
+function MapUpdater({ center, zoom, shouldUpdate }: { center: [number, number], zoom: number, shouldUpdate: boolean }) {
   const map = useMap()
+  const isInitialMount = useRef(true)
+  const lastCenter = useRef<[number, number]>(center)
+  const lastZoom = useRef<number>(zoom)
+  
   useEffect(() => {
-    map.setView(center, zoom)
-  }, [center, zoom, map])
+    // Ne pas forcer le zoom/center si l'utilisateur a interagi avec la carte
+    // Seulement lors du chargement initial ou si shouldUpdate est true
+    if (isInitialMount.current) {
+      map.setView(center, zoom)
+      lastCenter.current = center
+      lastZoom.current = zoom
+      isInitialMount.current = false
+    } else if (shouldUpdate) {
+      // Vérifier si les valeurs ont vraiment changé
+      const centerChanged = center[0] !== lastCenter.current[0] || center[1] !== lastCenter.current[1]
+      const zoomChanged = zoom !== lastZoom.current
+      
+      if (centerChanged || zoomChanged) {
+        map.setView(center, zoom)
+        lastCenter.current = center
+        lastZoom.current = zoom
+      }
+    }
+  }, [center, zoom, map, shouldUpdate])
+  
   return null
 }
 
@@ -212,6 +235,8 @@ export default function MapView() {
   
   const [center, setCenter] = useState<[number, number]>([48.8566, 2.3522]) // Paris default
   const [zoom, setZoom] = useState(6)
+  const [shouldUpdateMap, setShouldUpdateMap] = useState(true) // Contrôle si on doit mettre à jour la carte
+  const userHasInteracted = useRef(false) // Suivre si l'utilisateur a interagi avec la carte
 
   // Charger les données initiales
   useEffect(() => {
@@ -316,7 +341,7 @@ export default function MapView() {
       setLoading(true)
       const { startDate, endDate } = getDateRange()
       
-      console.log('📍 MapView loadData - Filters:', {
+      logger.log('📍 MapView loadData - Filters:', {
         selectedSurveyId,
         selectedAgentId,
         periodType,
@@ -364,13 +389,20 @@ export default function MapView() {
       const data = responsesRes?.data || []
       setResponses(data)
       
-      // Centrer la carte sur les réponses
-      if (data.length > 0 && data[0].coordinates) {
+      // Centrer la carte sur les réponses seulement si l'utilisateur n'a pas interagi
+      if (data.length > 0 && data[0].coordinates && !userHasInteracted.current) {
         setCenter([data[0].coordinates[1], data[0].coordinates[0]])
         setZoom(10)
+        setShouldUpdateMap(true)
+      } else {
+        // Si l'utilisateur a interagi, ne pas forcer la mise à jour
+        setShouldUpdateMap(false)
       }
-    } catch (error) {
-      console.error('Error loading map data:', error)
+    } catch (error: any) {
+      logger.error('Error loading map data:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors du chargement des données de la carte'
+      // Afficher l'erreur à l'utilisateur (vous pouvez ajouter un état pour afficher un message d'erreur visible)
+      alert(`⚠️ ${errorMessage}`)
       setResponses([]) // S'assurer que responses est un tableau vide en cas d'erreur
     } finally {
       setLoading(false)
@@ -605,8 +637,23 @@ export default function MapView() {
             zoom={zoom}
             className="h-full w-full"
             style={{ height: '100%', width: '100%' }}
+            whenCreated={(mapInstance) => {
+              // Détecter les interactions utilisateur (zoom, pan)
+              mapInstance.on('zoomend', () => {
+                const currentZoom = mapInstance.getZoom()
+                setZoom(currentZoom)
+                userHasInteracted.current = true
+                setShouldUpdateMap(false)
+              })
+              mapInstance.on('moveend', () => {
+                const currentCenter = mapInstance.getCenter()
+                setCenter([currentCenter.lat, currentCenter.lng])
+                userHasInteracted.current = true
+                setShouldUpdateMap(false)
+              })
+            }}
           >
-            <MapUpdater center={center} zoom={zoom} />
+            <MapUpdater center={center} zoom={zoom} shouldUpdate={shouldUpdateMap} />
             <TileLayer
               attribution={MAP_TYPES[mapType].attribution}
               url={MAP_TYPES[mapType].url}

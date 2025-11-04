@@ -5,6 +5,7 @@ import surveyService from '../../services/surveyService'
 import authService from '../../services/authService'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import SurveyAssignModal from '../../components/SurveyAssignModal'
+import { logger } from '../../utils/logger'
 
 // Custom Select Component with Scroll
 function SelectWithScroll({ 
@@ -123,21 +124,22 @@ export default function SurveyList() {
   const loadInitialData = async () => {
     try {
       const surveysResponse = await surveyService.getSurveys()
-      console.log('📋 Sondages chargés:', surveysResponse.data)
+      logger.log('📋 Sondages chargés:', surveysResponse.data)
       setSurveys(surveysResponse.data)
       
       // Charger les superviseurs si l'utilisateur est admin
       if (user?.role === 'admin') {
         try {
           const supervisorsResponse = await authService.getSupervisors()
-          console.log('👥 Superviseurs chargés:', supervisorsResponse.data)
+          logger.log('👥 Superviseurs chargés:', supervisorsResponse.data)
           setSupervisors(supervisorsResponse.data || [])
         } catch (error) {
-          console.error('Error loading supervisors:', error)
+          logger.error('Error loading supervisors:', error)
         }
       }
     } catch (error) {
-      console.error('Error loading surveys:', error)
+      logger.error('Error loading surveys:', error)
+      alert('⚠️ Erreur lors du chargement des sondages. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }
@@ -193,9 +195,10 @@ export default function SurveyList() {
     try {
       await surveyService.duplicateSurvey(id)
       loadInitialData()
-    } catch (error) {
-      console.error('Error duplicating survey:', error)
-      alert('Erreur lors de la duplication du sondage')
+    } catch (error: any) {
+      logger.error('Error duplicating survey:', error)
+      const errorMessage = error.response?.data?.message || 'Erreur lors de la duplication du sondage'
+      alert(`⚠️ ${errorMessage}`)
     }
   }
 

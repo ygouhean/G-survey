@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import notificationService, { Notification } from '../services/notificationService';
+import { logger } from '../utils/logger';
 
 interface NotificationDropdownProps {
   isOpen: boolean;
@@ -43,7 +44,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       setNotifications(response.data);
       setUnreadCount(response.unreadCount);
     } catch (error) {
-      console.error('Erreur lors du chargement des notifications:', error);
+      logger.error('Erreur lors du chargement des notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -64,7 +65,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
         onClose();
       }
     } catch (error) {
-      console.error('Erreur lors du marquage de la notification:', error);
+      logger.error('Erreur lors du marquage de la notification:', error);
     }
   };
 
@@ -74,7 +75,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Erreur lors du marquage des notifications:', error);
+      logger.error('Erreur lors du marquage des notifications:', error);
     }
   };
 
@@ -88,7 +89,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression de la notification:', error);
+      logger.error('Erreur lors de la suppression de la notification:', error);
     }
   };
 

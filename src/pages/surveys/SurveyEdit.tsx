@@ -4,6 +4,7 @@ import { useAuthStore } from '../../store/authStore'
 import SurveyBuilder from '../../components/SurveyBuilder'
 import surveyService from '../../services/surveyService'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import { logger } from '../../utils/logger'
 
 // Helper pour obtenir les émojis selon le type
 const getCSATEmojis = (type: string = 'stars') => {
@@ -79,7 +80,7 @@ export default function SurveyEdit() {
         randomizeQuestions: false
       })
     } catch (error: any) {
-      console.error('Error loading survey:', error)
+      logger.error('Error loading survey:', error)
       const errorMessage = error.response?.data?.message || error.message || 'Erreur lors du chargement du sondage'
       alert(errorMessage)
       navigate('/surveys', { replace: true })
@@ -212,8 +213,9 @@ export default function SurveyEdit() {
       await surveyService.updateSurvey(id!, surveyData)
       navigate(`/surveys/${id}`, { replace: false })
     } catch (error: any) {
-      console.error('Error updating survey:', error)
-      alert(error.response?.data?.message || 'Erreur lors de la mise à jour du sondage')
+      logger.error('Error updating survey:', error)
+      const errorMessage = error.response?.data?.message || 'Erreur lors de la mise à jour du sondage'
+      alert(`⚠️ ${errorMessage}`)
     } finally {
       setSaving(false)
     }

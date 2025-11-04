@@ -274,3 +274,5 @@ if ($ImportToSupabase) {
     Import-ToSupabase -SupabaseUri $SupabaseUri -SqlFile $cleanedFile
 }
 
+
+

@@ -4,6 +4,7 @@ import analyticsService from '../services/analyticsService'
 import surveyService from '../services/surveyService'
 import authService from '../services/authService'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { logger } from '../utils/logger'
 import { Bar, Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -157,7 +158,7 @@ export default function Analytics() {
       const agentsRes = await authService.getAgents()
       setAgents(agentsRes.data || [])
     } catch (error) {
-      console.error('Error loading agents:', error)
+      logger.error('Error loading agents:', error)
     }
   }
 
@@ -212,7 +213,7 @@ export default function Analytics() {
       setLoading(true)
       const { startDate, endDate } = getDateRange()
       
-      console.log('📊 Analytics loadData - Filters:', {
+      logger.log('📊 Analytics loadData - Filters:', {
         periodType,
         selectedAgentId,
         startDate,
@@ -231,16 +232,18 @@ export default function Analytics() {
       ])
       setSurvey(surveyRes.data)
       setAnalytics(analyticsRes.data)
-    } catch (error) {
-      console.error('Error loading analytics:', error)
+    } catch (error: any) {
+      logger.error('Error loading analytics:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur lors du chargement des statistiques'
+      alert(`⚠️ ${errorMessage}`)
       // Ne pas laisser analytics à null si une erreur survient avec un id valide
       if (id) {
         // Essayer de charger au moins le sondage
         try {
           const surveyRes = await surveyService.getSurvey(id)
           setSurvey(surveyRes.data)
-        } catch (surveyError) {
-          console.error('Error loading survey:', surveyError)
+        } catch (surveyError: any) {
+          logger.error('Error loading survey:', surveyError)
         }
       }
     } finally {

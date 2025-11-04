@@ -249,3 +249,5 @@ if [ "$IMPORT_TO_SUPABASE" = true ]; then
     import_to_supabase "$SUPABASE_URI" "$cleaned_file"
 fi
 
+
+

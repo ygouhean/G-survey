@@ -108,7 +108,10 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
       }
       
       const options = { mimeType }
-      console.log('📹 Format vidéo sélectionné:', mimeType, 'pour', navigator.userAgent)
+      // Log seulement en développement
+      if (import.meta.env.DEV) {
+        console.log('📹 Format vidéo sélectionné:', mimeType, 'pour', navigator.userAgent)
+      }
       
       mediaRecorderRef.current = new MediaRecorder(mediaStream, options)
       

@@ -27,7 +27,7 @@ export default function Header({ toggleSidebar }: HeaderProps) {
       const response = await notificationService.getUnreadCount()
       setUnreadCount(response.count)
     } catch (error) {
-      console.error('Erreur lors du chargement du compteur de notifications:', error)
+      logger.error('Erreur lors du chargement du compteur de notifications:', error)
     }
   }
 

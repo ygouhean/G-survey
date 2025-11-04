@@ -21,7 +21,9 @@ export default function Login() {
       await login(identifier, password)
       navigate('/dashboard')
     } catch (err: any) {
-      setError(err.message || 'Erreur de connexion')
+      // Message d'erreur plus spécifique pour l'utilisateur
+      const errorMessage = err.response?.data?.message || err.message || 'Adresse e-mail ou mot de passe incorrect'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

@@ -64,9 +64,10 @@ export default function SurveyRespond() {
         surveyData.questions = []
       }
       setSurvey(surveyData)
-    } catch (error) {
-      console.error('Error loading survey:', error)
-      alert('Erreur lors du chargement du sondage')
+    } catch (error: any) {
+      logger.error('Error loading survey:', error)
+      const errorMessage = error.response?.data?.message || 'Erreur lors du chargement du sondage'
+      alert(`⚠️ ${errorMessage}`)
       navigate('/surveys')
     } finally {
       setLoading(false)
@@ -79,10 +80,10 @@ export default function SurveyRespond() {
         (position) => {
           const coords: [number, number] = [position.coords.longitude, position.coords.latitude]
           setLocation(coords)
-          console.log('Position capturée:', coords)
+          logger.log('Position capturée:', coords)
         },
         (error) => {
-          console.error('Error getting location:', error)
+          logger.error('Error getting location:', error)
           // Si la géolocalisation est requise, afficher une alerte
           if (survey?.settings?.requireGeolocation) {
             alert('⚠️ Ce sondage nécessite votre position géographique. Veuillez autoriser la géolocalisation.')
@@ -215,8 +216,9 @@ export default function SurveyRespond() {
                         return item
                       })
                     } catch (uploadError: any) {
-                      console.error('Erreur upload fichiers:', uploadError)
-                      alert(`❌ Erreur lors de l'upload des fichiers : ${uploadError.message}`)
+                      logger.error('Erreur upload fichiers:', uploadError)
+                      const uploadErrorMessage = uploadError.response?.data?.message || uploadError.message || 'Erreur lors de l\'upload des fichiers'
+                      alert(`⚠️ ${uploadErrorMessage}`)
                       setSubmitting(false)
                       return null
                     }

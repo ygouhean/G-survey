@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../../store/authStore'
 import SurveyBuilder from '../../components/SurveyBuilder'
 import surveyService from '../../services/surveyService'
+import { logger } from '../../utils/logger'
 
 // Helper pour obtenir les émojis selon le type
 const getCSATEmojis = (type: string = 'stars') => {
@@ -172,8 +173,9 @@ export default function SurveyCreate() {
         navigate('/surveys', { replace: false })
       }
     } catch (error: any) {
-      console.error('Error creating survey:', error)
-      alert(error.response?.data?.message || 'Erreur lors de la création du sondage')
+      logger.error('Error creating survey:', error)
+      const errorMessage = error.response?.data?.message || 'Erreur lors de la création du sondage'
+      alert(`⚠️ ${errorMessage}`)
     } finally {
       setSaving(false)
     }

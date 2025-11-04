@@ -48,7 +48,7 @@ export default function SurveyView() {
       setSurvey(surveyData)
       setResponses(responsesRes.data || [])
     } catch (error: any) {
-      console.error('Error loading data:', error)
+      logger.error('Error loading data:', error)
       const errorMessage = error.response?.data?.message || error.message || 'Erreur lors du chargement du sondage'
       alert(errorMessage)
       navigate('/surveys', { replace: true })
@@ -81,7 +81,7 @@ export default function SurveyView() {
       setSurvey({ ...survey, status: newStatus, autoClosedAt: newStatus === 'active' ? null : survey.autoClosedAt })
       alert(`✅ Statut du sondage mis à jour : ${newStatus === 'active' ? 'Actif' : newStatus === 'paused' ? 'En pause' : 'Fermé'}`)
     } catch (error: any) {
-      console.error('Error updating status:', error)
+      logger.error('Error updating status:', error)
       alert(error.response?.data?.message || 'Erreur lors de la mise à jour du statut')
     }
   }
@@ -104,7 +104,7 @@ export default function SurveyView() {
         navigate('/surveys', { replace: false })
       }
     } catch (error: any) {
-      console.error('Error duplicating survey:', error)
+      logger.error('Error duplicating survey:', error)
       alert(error.response?.data?.message || 'Erreur lors de la duplication du sondage')
     }
   }
@@ -121,7 +121,7 @@ export default function SurveyView() {
       alert('Sondage supprimé avec succès')
       navigate('/surveys', { replace: false })
     } catch (error: any) {
-      console.error('Error deleting survey:', error)
+      logger.error('Error deleting survey:', error)
       alert(error.response?.data?.message || 'Erreur lors de la suppression du sondage')
     }
   }
@@ -187,7 +187,8 @@ export default function SurveyView() {
         await exportService.exportToJSON(id!, startDate, endDate)
       }
     } catch (error) {
-      console.error('Error exporting:', error)
+      logger.error('Error exporting:', error)
+      alert(error.response?.data?.message || 'Erreur lors de l\'export des données')
       alert('Erreur lors de l\'export')
     }
   }
