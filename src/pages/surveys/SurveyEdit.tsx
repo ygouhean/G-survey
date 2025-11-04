@@ -144,25 +144,31 @@ export default function SurveyEdit() {
     try {
       const surveyData: any = {
         title,
-        description,
-        questions,
-        targetResponses,
-        startDate: startDate ? new Date(startDate) : undefined,
-        settings
+        description: description || null,
+        questions: Array.isArray(questions) ? questions : [],
+        targetResponses: targetResponses || 0,
+        startDate: startDate ? new Date(startDate).toISOString() : null,
+        settings: settings || {
+          allowAnonymous: false,
+          requireGeolocation: false,
+          allowOfflineSubmission: true,
+          showProgressBar: true,
+          randomizeQuestions: false
+        }
       }
 
       // Seul l'admin peut modifier la date de fin
       if (user?.role === 'admin') {
-        surveyData.endDate = endDate ? new Date(endDate) : undefined
+        surveyData.endDate = endDate ? new Date(endDate).toISOString() : null
         
         // Si c'est la première fois qu'on définit une date de fin, la sauvegarder comme originale
         if (!survey.originalEndDate && endDate) {
-          surveyData.originalEndDate = new Date(endDate)
+          surveyData.originalEndDate = new Date(endDate).toISOString()
         }
       }
 
       await surveyService.updateSurvey(id!, surveyData)
-      navigate(`/surveys/${id}`, { replace: true })
+      navigate(`/surveys/${id}`, { replace: false })
     } catch (error: any) {
       console.error('Error updating survey:', error)
       alert(error.response?.data?.message || 'Erreur lors de la mise à jour du sondage')
@@ -190,7 +196,7 @@ export default function SurveyEdit() {
 
         <div className="flex gap-3">
           <button
-            onClick={() => navigate(`/surveys/${id}`)}
+            onClick={() => navigate(`/surveys/${id}`, { replace: false })}
             className="btn btn-secondary"
             disabled={saving}
           >

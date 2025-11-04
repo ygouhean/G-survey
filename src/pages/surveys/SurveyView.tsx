@@ -75,6 +75,43 @@ export default function SurveyView() {
     }
   }
 
+  const handleDuplicate = async () => {
+    if (!id) return
+    
+    try {
+      const response = await surveyService.duplicateSurvey(id)
+      const duplicatedId = response.data?.id || response.data?.data?.id
+      if (duplicatedId) {
+        alert('Sondage dupliqué avec succès !')
+        navigate(`/surveys/${duplicatedId}`, { replace: false })
+      } else {
+        // Si pas d'ID retourné, rediriger vers la liste des sondages
+        alert('Sondage dupliqué avec succès !')
+        navigate('/surveys', { replace: false })
+      }
+    } catch (error: any) {
+      console.error('Error duplicating survey:', error)
+      alert(error.response?.data?.message || 'Erreur lors de la duplication du sondage')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!id) return
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce sondage ? Cette action est irréversible.')) {
+      return
+    }
+
+    try {
+      await surveyService.deleteSurvey(id)
+      alert('Sondage supprimé avec succès')
+      navigate('/surveys', { replace: false })
+    } catch (error: any) {
+      console.error('Error deleting survey:', error)
+      alert(error.response?.data?.message || 'Erreur lors de la suppression du sondage')
+    }
+  }
+
   const getDateRange = () => {
     const today = new Date()
     let startDate = ''
@@ -180,20 +217,38 @@ export default function SurveyView() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => navigate('/surveys')}
+            onClick={() => navigate('/surveys', { replace: false })}
             className="btn btn-secondary"
           >
             ← Retour
           </button>
           {canEdit && (
-            <Link
-              to={`/surveys/${id}/edit`}
-              className="btn btn-primary"
-            >
-              ✏️ Modifier
-            </Link>
+            <>
+              <Link
+                to={`/surveys/${id}/edit`}
+                className="btn btn-primary"
+              >
+                ✏️ Modifier
+              </Link>
+              <button
+                onClick={handleDuplicate}
+                className="btn btn-secondary"
+                title="Dupliquer le sondage"
+              >
+                📋 Dupliquer
+              </button>
+              {user?.role === 'admin' && (
+                <button
+                  onClick={handleDelete}
+                  className="btn btn-danger"
+                  title="Supprimer le sondage"
+                >
+                  🗑️ Supprimer
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

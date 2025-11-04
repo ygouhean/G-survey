@@ -94,29 +94,35 @@ export default function SurveyCreate() {
     try {
       const surveyData: any = {
         title,
-        description,
-        questions,
+        description: description || null,
+        questions: Array.isArray(questions) ? questions : [],
         status,
-        targetResponses,
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
-        settings
+        targetResponses: targetResponses || 0,
+        startDate: startDate ? new Date(startDate).toISOString() : null,
+        endDate: endDate ? new Date(endDate).toISOString() : null,
+        settings: settings || {
+          allowAnonymous: false,
+          requireGeolocation: false,
+          allowOfflineSubmission: true,
+          showProgressBar: true,
+          randomizeQuestions: false
+        }
       }
 
       // Sauvegarder la date de fin originale lors de la création
       if (endDate) {
-        surveyData.originalEndDate = new Date(endDate)
+        surveyData.originalEndDate = new Date(endDate).toISOString()
       }
 
       const response = await surveyService.createSurvey(surveyData)
       // La réponse est déjà dans response.data (surveyService retourne response.data)
       const surveyId = response.data?.id || response.data?.data?.id
       if (surveyId) {
-        // Utiliser window.location pour forcer un rechargement complet si nécessaire
+        // Naviguer vers le sondage créé (replace: true pour éviter de revenir au formulaire vide)
         navigate(`/surveys/${surveyId}`, { replace: true })
       } else {
         // Si pas d'ID, rediriger vers la liste des sondages
-        navigate('/surveys', { replace: true })
+        navigate('/surveys', { replace: false })
       }
     } catch (error: any) {
       console.error('Error creating survey:', error)
