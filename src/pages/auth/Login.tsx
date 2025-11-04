@@ -95,6 +95,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="input"
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   required
                 />
               </div>

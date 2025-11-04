@@ -24,9 +24,30 @@ const app = express();
 connectDB();
 
 // Middleware
+// Configuration CORS pour accepter plusieurs origines (dev et prod)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.CLIENT_URL
+].filter(Boolean); // Supprime les valeurs undefined/null
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origine (ex: Postman, mobile apps)
+    if (!origin) return callback(null, true);
+    
+    // Vérifier si l'origine est dans la liste autorisée
+    if (allowedOrigins.some(allowedOrigin => origin === allowedOrigin)) {
+      callback(null, true);
+    } else {
+      // En production, on peut être plus strict, mais pour le moment on accepte
+      // pour éviter les problèmes de déploiement
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

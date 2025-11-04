@@ -26,6 +26,7 @@ interface AuthState {
   logout: () => void
   checkAuth: () => Promise<void>
   updateUser: (userData: Partial<User>) => void
+  setAuth: (user: User, token: string) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -98,6 +99,16 @@ export const useAuthStore = create<AuthState>()(
         if (user) {
           set({ user: { ...user, ...userData } })
         }
+      },
+
+      setAuth: (user: User, token: string) => {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          loading: false
+        })
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       }
     }),
     {

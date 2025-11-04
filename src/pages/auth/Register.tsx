@@ -6,7 +6,7 @@ import api from '../../services/api'
 
 export default function Register() {
   const navigate = useNavigate()
-  const { login } = useAuthStore()
+  const { setAuth } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -134,10 +134,11 @@ export default function Register() {
       setSuccess(true)
       
       // Auto-login après inscription réussie si un token est retourné
-      if (response.data.data?.token) {
+      if (response.data.data?.token && response.data.data?.user) {
         const { user, token } = response.data.data
-        // Mettre à jour le store auth
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        
+        // Mettre à jour le store auth correctement
+        setAuth(user, token)
         
         // Rediriger vers le dashboard après un court délai
         setTimeout(() => {
@@ -297,6 +298,7 @@ export default function Register() {
                       onChange={handleChange}
                       className="input pr-10"
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       required
                     />
                     <button
@@ -321,6 +323,7 @@ export default function Register() {
                       onChange={handleChange}
                       className="input pr-10"
                       placeholder="••••••••"
+                      autoComplete="new-password"
                       required
                     />
                     <button
