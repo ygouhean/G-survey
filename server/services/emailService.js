@@ -2,6 +2,11 @@ const nodemailer = require('nodemailer');
 
 // Configuration du transporteur SMTP
 const createTransporter = () => {
+  // Vérifier que les variables SMTP sont configurées
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return null;
+  }
+
   // Configuration depuis les variables d'environnement
   const config = {
     host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -13,13 +18,23 @@ const createTransporter = () => {
     }
   };
 
-  // Si pas de config SMTP, utiliser Ethereal (dev/test)
-  if (!config.auth.user || !config.auth.pass) {
-    console.warn('⚠️  SMTP non configuré. Utilisation d\'Ethereal Email pour les tests.');
-    return null; // Retourner null pour activer Ethereal dans sendEmail
+  try {
+    const transporter = nodemailer.createTransport(config);
+    
+    // Vérifier la connexion (optionnel, peut être commenté si trop lent)
+    // transporter.verify((error, success) => {
+    //   if (error) {
+    //     console.error('❌ Erreur de vérification SMTP:', error);
+    //   } else {
+    //     console.log('✅ Serveur SMTP prêt à envoyer des emails');
+    //   }
+    // });
+    
+    return transporter;
+  } catch (error) {
+    console.error('❌ Erreur lors de la création du transporteur SMTP:', error);
+    return null;
   }
-
-  return nodemailer.createTransport(config);
 };
 
 // Template d'email de bienvenue
