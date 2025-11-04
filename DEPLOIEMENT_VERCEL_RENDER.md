@@ -129,7 +129,35 @@ Notes:
 
 ---
 
-## 5) Vérifications post-déploiement
+## 5) Initialisation de la Base de Données
+
+**⚠️ IMPORTANT :** Si les tables n'existent pas encore dans Supabase, vous devez les créer manuellement.
+
+### Option A : Script SQL d'Initialisation (Recommandé)
+
+1. Allez sur Supabase → **SQL Editor**
+2. Assurez-vous que PostGIS est activé :
+   ```sql
+   CREATE EXTENSION IF NOT EXISTS postgis;
+   ```
+3. Ouvrez le fichier `server/migrations/init-database.sql` du projet
+4. Copiez tout le contenu et collez-le dans l'éditeur SQL de Supabase
+5. Cliquez sur **Run** pour exécuter le script
+6. Vérifiez que les tables sont créées :
+   ```sql
+   SELECT table_name 
+   FROM information_schema.tables 
+   WHERE table_schema = 'public' 
+   ORDER BY table_name;
+   ```
+   
+   Vous devriez voir : `teams`, `users`, `surveys`, `responses`, `notifications`, etc.
+
+### Option B : Synchronisation Automatique (Si Sequelize a les permissions)
+
+Le serveur essaiera automatiquement de créer les tables au démarrage, mais cela peut échouer si les permissions sont insuffisantes. Dans ce cas, utilisez l'Option A.
+
+## 6) Vérifications post-déploiement
 
 ### Backend
 - Accédez à `GET https://<render-url>/api/auth/health` (si route health exposée) ou testez `/api/auth/login` via un client HTTP.
@@ -137,10 +165,10 @@ Notes:
 - Emails: testez `/api/auth/forgot-password` (vérifiez la réception email).
 
 ### Frontend
-- Ouvrez l’URL Vercel.
+- Ouvrez l'URL Vercel.
 - Vérifiez: pages Landing / Login / Register / Forgot / Reset.
-- Vérifiez que les images s’affichent (sources `/images/...`).
-- Connectez-vous avec l’admin par défaut (si non déjà créé en base):
+- Vérifiez que les images s'affichent (sources `/images/...`).
+- Connectez-vous avec l'admin par défaut (créé automatiquement après initialisation des tables):
   - Email: `admin@gsurvey.com`
   - Mot de passe: `Admin@123`
 
