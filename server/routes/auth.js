@@ -113,8 +113,11 @@ router.post('/register',
       // Envoyer l'email de bienvenue (asynchrone, non bloquant)
       const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
       sendWelcomeEmail(user, loginUrl).catch(err => {
-        console.error('Erreur lors de l\'envoi de l\'email de bienvenue:', err);
-        // Ne pas bloquer l'inscription si l'email échoue
+        console.error('❌ Erreur lors de l\'envoi de l\'email de bienvenue:', err.message || err);
+        // Ne pas bloquer l'inscription si l'email échoue, mais logger l'erreur
+        if (process.env.NODE_ENV === 'production') {
+          console.error('📧 Email de bienvenue non envoyé. Vérifiez la configuration SMTP.');
+        }
       });
 
       res.status(201).json({
@@ -250,8 +253,11 @@ router.post('/forgot-password',
 
         // Send reset password email (asynchrone, non bloquant)
         sendResetPasswordEmail(user, resetUrl, 10).catch(err => {
-          console.error('Erreur lors de l\'envoi de l\'email de réinitialisation:', err);
-          // Ne pas bloquer la réponse si l'email échoue
+          console.error('❌ Erreur lors de l\'envoi de l\'email de réinitialisation:', err.message || err);
+          // Ne pas bloquer la réponse si l'email échoue, mais logger l'erreur
+          if (process.env.NODE_ENV === 'production') {
+            console.error('📧 Email de réinitialisation non envoyé. Vérifiez la configuration SMTP.');
+          }
         });
       }
 

@@ -163,21 +163,30 @@ const resetPasswordEmailTemplate = (user, resetUrl, expirationMinutes = 10) => {
  */
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    let transporter = createTransporter();
-
-    // Si pas de config SMTP, utiliser Ethereal (dev/test uniquement)
-    if (!transporter) {
+    // Vérifier d'abord si SMTP est configuré
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      const errorMsg = '⚠️ SMTP non configuré : Les variables d\'environnement SMTP_USER et SMTP_PASS sont requises pour envoyer des emails';
+      console.error(errorMsg);
+      
+      // En production, lever une erreur pour que ce soit visible
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(errorMsg);
+      }
+      
+      // En développement, seulement logger et simuler
       console.log('📧 Mode développement : Email non envoyé (SMTP non configuré)');
       console.log('📋 Email qui aurait été envoyé :');
       console.log('   À:', to);
       console.log('   Sujet:', subject);
       console.log('');
-      return { success: true, message: 'Email simulé (mode dev)' };
+      return { success: false, message: 'Email non envoyé - SMTP non configuré' };
     }
 
-    // Vérifier que SMTP_USER est configuré
-    if (!process.env.SMTP_USER) {
-      throw new Error('SMTP_USER non configuré dans les variables d\'environnement');
+    let transporter = createTransporter();
+
+    // Vérifier que le transporter a été créé
+    if (!transporter) {
+      throw new Error('Impossible de créer le transporteur SMTP. Vérifiez votre configuration SMTP.');
     }
 
     const mailOptions = {
