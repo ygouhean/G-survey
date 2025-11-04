@@ -16,15 +16,31 @@ const upload = multer({
     fileSize: 100 * 1024 * 1024 // 100 MB max par fichier
   },
   fileFilter: function (req, file, cb) {
-    // Vérifier les types de fichiers
-    const allowedTypes = /jpeg|jpg|png|gif|mp4|avi|mov|pdf|doc|docx|xls|xlsx|csv|zip/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
+    // Types de fichiers autorisés
+    const allowedExtensions = /jpeg|jpg|png|gif|mp4|avi|mov|webm|ogg|quicktime|3gp|mkv|m4v|pdf|doc|docx|xls|xlsx|csv|zip/;
+    const allowedMimeTypes = [
+      // Images
+      /^image\/(jpeg|jpg|png|gif|webp)$/,
+      // Vidéos
+      /^video\/(mp4|avi|quicktime|webm|ogg|x-msvideo|3gpp|x-matroska|m4v)$/,
+      // Documents
+      /^application\/(pdf|msword|vnd\.openxmlformats-officedocument\.wordprocessingml\.document|vnd\.ms-excel|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|csv|zip)$/,
+      // Audio (si nécessaire)
+      /^audio\/(mp3|wav|ogg|m4a)$/
+    ];
+    
+    const extname = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedMimeTypes.some(regex => regex.test(file.mimetype));
 
-    if (mimetype && extname) {
+    if (mimetype || extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Type de fichier non autorisé'));
+      console.error('Type de fichier rejeté:', {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        extname: path.extname(file.originalname)
+      });
+      cb(new Error(`Type de fichier non autorisé: ${file.mimetype || 'inconnu'}`));
     }
   }
 });

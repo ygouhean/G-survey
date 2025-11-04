@@ -39,12 +39,27 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
   const startCamera = async () => {
     try {
       setError('')
+      
+      // Vérifier si l'API est disponible
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('L\'accès à la caméra n\'est pas disponible sur cet appareil')
+      }
+      
+      // Configuration vidéo adaptée selon l'appareil
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      const videoConstraints: any = {
+        facingMode: facingMode,
+        width: { ideal: isIOS ? 1280 : 1920 },
+        height: { ideal: isIOS ? 720 : 1080 }
+      }
+      
+      // Pour iOS, ne pas spécifier facingMode si on est sur Mac
+      if (isIOS && navigator.platform === 'MacIntel') {
+        delete videoConstraints.facingMode
+      }
+      
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facingMode,
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        },
+        video: videoConstraints,
         audio: true
       })
       
@@ -54,11 +69,46 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
         videoRef.current.srcObject = mediaStream
       }
 
-      // Préparer le MediaRecorder
-      const options = { mimeType: 'video/webm;codecs=vp9' }
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm'
+      // Préparer le MediaRecorder avec détection du meilleur format pour le navigateur
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+      
+      let mimeType = 'video/webm'
+      let fileExtension = 'webm'
+      
+      // Détecter le meilleur format supporté
+      const possibleTypes = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4',
+        'video/quicktime'
+      ]
+      
+      // Pour iOS/Safari, préférer QuickTime
+      if (isIOS || isSafari) {
+        if (MediaRecorder.isTypeSupported('video/mp4')) {
+          mimeType = 'video/mp4'
+          fileExtension = 'mp4'
+        } else if (MediaRecorder.isTypeSupported('video/quicktime')) {
+          mimeType = 'video/quicktime'
+          fileExtension = 'mov'
+        }
+      } else {
+        // Pour les autres navigateurs, essayer webm puis mp4
+        for (const type of possibleTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            mimeType = type
+            if (type.includes('mp4')) {
+              fileExtension = 'mp4'
+            }
+            break
+          }
+        }
       }
+      
+      const options = { mimeType }
+      console.log('📹 Format vidéo sélectionné:', mimeType, 'pour', navigator.userAgent)
       
       mediaRecorderRef.current = new MediaRecorder(mediaStream, options)
       
@@ -69,7 +119,7 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
       }
 
       mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' })
+        const blob = new Blob(chunksRef.current, { type: mimeType })
         const sizeMB = blob.size / 1024 / 1024
         
         if (sizeMB > maxSizeMB) {
@@ -78,7 +128,7 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
           return
         }
 
-        const file = new File([blob], `video_${Date.now()}.webm`, { type: 'video/webm' })
+        const file = new File([blob], `video_${Date.now()}.${fileExtension}`, { type: mimeType })
         stopCamera()
         onCapture(file)
       }
@@ -217,6 +267,8 @@ export default function VideoCapture({ onCapture, onClose, maxSizeMB = 10 }: Vid
     </div>
   )
 }
+
+
 
 
 
