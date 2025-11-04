@@ -28,6 +28,7 @@
     "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
+    "lucide-react": "^0.344.0",
     "multer": "^2.0.2",
     "nodemailer": "^6.9.8",
     "pg": "^8.11.3",
