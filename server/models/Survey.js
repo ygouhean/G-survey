@@ -64,7 +64,7 @@ const Survey = sequelize.define('Survey', {
     trim: true
   },
   questions: {
-    type: DataTypes.ARRAY(DataTypes.JSONB),
+    type: DataTypes.JSONB,
     allowNull: false,
     defaultValue: []
   },
