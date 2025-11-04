@@ -33,10 +33,9 @@ import Settings from './pages/Settings'
 // Components
 import ProtectedRoute from './components/ProtectedRoute'
 import LoadingSpinner from './components/LoadingSpinner'
-import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
-  const { checkAuth, loading, isAuthenticated } = useAuthStore()
+  const { checkAuth, loading } = useAuthStore()
 
   useEffect(() => {
     checkAuth()
@@ -47,16 +46,14 @@ function App() {
   }
 
   return (
-    <ErrorBoundary>
       <Router>
-        <AppRouterContent isAuthenticated={isAuthenticated} />
+        <AppRouterContent />
       </Router>
-    </ErrorBoundary>
   )
 }
 
 // Composant interne pour configurer la navigation et les routes
-function AppRouterContent({ isAuthenticated }: { isAuthenticated: boolean }) {
+function AppRouterContent() {
   const navigate = useNavigate()
   
   useEffect(() => {

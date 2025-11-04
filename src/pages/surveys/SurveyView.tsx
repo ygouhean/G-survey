@@ -58,6 +58,11 @@ export default function SurveyView() {
   }
 
   const handleStatusChange = async (newStatus: string) => {
+    if (!survey || !id) {
+      alert('Erreur : Le sondage n\'est pas chargé')
+      return
+    }
+
     // Vérifier si le sondage a été fermé automatiquement
     if (survey.autoClosedAt && survey.status === 'closed' && newStatus === 'active') {
       if (user?.role !== 'admin') {
@@ -72,26 +77,30 @@ export default function SurveyView() {
     }
 
     try {
-      await surveyService.updateSurveyStatus(id!, newStatus)
+      await surveyService.updateSurveyStatus(id, newStatus)
       setSurvey({ ...survey, status: newStatus, autoClosedAt: newStatus === 'active' ? null : survey.autoClosedAt })
-    } catch (error) {
+      alert(`✅ Statut du sondage mis à jour : ${newStatus === 'active' ? 'Actif' : newStatus === 'paused' ? 'En pause' : 'Fermé'}`)
+    } catch (error: any) {
       console.error('Error updating status:', error)
-      alert('Erreur lors de la mise à jour du statut')
+      alert(error.response?.data?.message || 'Erreur lors de la mise à jour du statut')
     }
   }
 
   const handleDuplicate = async () => {
-    if (!id) return
+    if (!id || !survey) {
+      alert('Erreur : Le sondage n\'est pas chargé')
+      return
+    }
     
     try {
       const response = await surveyService.duplicateSurvey(id)
       const duplicatedId = response.data?.id || response.data?.data?.id
       if (duplicatedId) {
-        alert('Sondage dupliqué avec succès !')
+        alert('✅ Sondage dupliqué avec succès !')
         navigate(`/surveys/${duplicatedId}`, { replace: false })
       } else {
         // Si pas d'ID retourné, rediriger vers la liste des sondages
-        alert('Sondage dupliqué avec succès !')
+        alert('✅ Sondage dupliqué avec succès !')
         navigate('/surveys', { replace: false })
       }
     } catch (error: any) {
@@ -231,12 +240,18 @@ export default function SurveyView() {
           </button>
           {canEdit && (
             <>
-              <Link
-                to={`/surveys/${id}/edit`}
+              <button
+                onClick={() => {
+                  if (!id) {
+                    alert('Erreur : ID du sondage manquant')
+                    return
+                  }
+                  navigate(`/surveys/${id}/edit`)
+                }}
                 className="btn btn-primary"
               >
                 ✏️ Modifier
-              </Link>
+              </button>
               <button
                 onClick={handleDuplicate}
                 className="btn btn-secondary"
