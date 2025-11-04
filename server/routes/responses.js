@@ -312,13 +312,91 @@ router.post('/', protect, canAccessSurvey, async (req, res, next) => {
       });
     }
 
+    // Nettoyer et valider les answers et extraire les scores
+    let cleanedAnswers = [];
+    let npsScore = null;
+    let csatScore = null;
+    let cesScore = null;
+    
+    if (answers && Array.isArray(answers)) {
+      cleanedAnswers = answers.map(answer => {
+        const cleaned = {};
+        
+        // Propriétés obligatoires
+        if (answer.questionId) cleaned.questionId = String(answer.questionId);
+        if (answer.questionType) cleaned.questionType = String(answer.questionType);
+        if (answer.value !== undefined && answer.value !== null) {
+          // Nettoyer la valeur selon son type
+          if (typeof answer.value === 'string' || typeof answer.value === 'number' || typeof answer.value === 'boolean') {
+            cleaned.value = answer.value;
+          } else if (Array.isArray(answer.value)) {
+            cleaned.value = answer.value;
+          } else if (typeof answer.value === 'object') {
+            cleaned.value = answer.value;
+          } else {
+            cleaned.value = String(answer.value);
+          }
+          
+          // Extraire les scores pour les types spécifiques
+          if (answer.questionType === 'nps' && typeof answer.value === 'number') {
+            const score = Number(answer.value);
+            if (score >= 0 && score <= 10) {
+              npsScore = score;
+            }
+          } else if (answer.questionType === 'csat' && typeof answer.value === 'number') {
+            const score = Number(answer.value);
+            if (score >= 1 && score <= 5) {
+              csatScore = score;
+            }
+          } else if (answer.questionType === 'ces' && typeof answer.value === 'number') {
+            const score = Number(answer.value);
+            if (score >= 1 && score <= 7) {
+              cesScore = score;
+            }
+          }
+        }
+        
+        // Propriétés optionnelles
+        if (answer.geolocation && typeof answer.geolocation === 'object') {
+          cleaned.geolocation = answer.geolocation;
+        }
+        if (answer.areaMeasurement && typeof answer.areaMeasurement === 'object') {
+          cleaned.areaMeasurement = answer.areaMeasurement;
+        }
+        
+        return cleaned;
+      });
+    }
+
+    // Nettoyer deviceInfo
+    let cleanedDeviceInfo = null;
+    if (deviceInfo && typeof deviceInfo === 'object' && !Array.isArray(deviceInfo)) {
+      cleanedDeviceInfo = {
+        userAgent: deviceInfo.userAgent ? String(deviceInfo.userAgent) : null,
+        platform: deviceInfo.platform ? String(deviceInfo.platform) : null,
+        online: Boolean(deviceInfo.online !== false)
+      };
+    }
+
+    // Nettoyer metadata
+    let cleanedMetadata = null;
+    if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+      cleanedMetadata = {};
+      if (metadata.startTime) cleanedMetadata.startTime = String(metadata.startTime);
+      if (metadata.endTime) cleanedMetadata.endTime = String(metadata.endTime);
+      if (metadata.duration !== undefined) cleanedMetadata.duration = Number(metadata.duration) || 0;
+    }
+
     // Format location for PostGIS if provided
     let responseData = {
       surveyId: survey,
       respondentId: req.user.id,
-      answers,
-      deviceInfo,
-      metadata,
+      answers: cleanedAnswers,
+      deviceInfo: cleanedDeviceInfo,
+      metadata: cleanedMetadata,
+      npsScore: npsScore,
+      csatScore: csatScore,
+      cesScore: cesScore,
       status: 'completed'
     };
 
@@ -344,6 +422,16 @@ router.post('/', protect, canAccessSurvey, async (req, res, next) => {
       data: response
     });
   } catch (error) {
+    console.error('❌ Error creating response:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    if (error.name === 'SequelizeDatabaseError' && error.message && error.message.includes('json')) {
+      console.error('Request body:', JSON.stringify(req.body, null, 2));
+      return res.status(400).json({
+        success: false,
+        message: 'Erreur de format JSON. Veuillez vérifier les données de la réponse (answers, deviceInfo, metadata).'
+      });
+    }
     next(error);
   }
 });

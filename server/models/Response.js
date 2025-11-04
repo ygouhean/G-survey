@@ -50,7 +50,7 @@ const Response = sequelize.define('Response', {
     }
   },
   answers: {
-    type: DataTypes.ARRAY(DataTypes.JSONB),
+    type: DataTypes.JSONB,
     allowNull: false,
     defaultValue: []
   },
