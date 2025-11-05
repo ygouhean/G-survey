@@ -165,105 +165,82 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Bienvenue, {user?.firstName} ! 👋
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Voici un aperçu de vos activités de sondage
-          </p>
-        </div>
-        
-        {/* Filtre de période */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1">
-            <button
-              onClick={() => handlePeriodChange('all')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                period === 'all'
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Tout
-            </button>
-            <button
-              onClick={() => handlePeriodChange('today')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                period === 'today'
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Aujourd'hui
-            </button>
-            <button
-              onClick={() => handlePeriodChange('7days')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                period === '7days'
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              7 jours
-            </button>
-            <button
-              onClick={() => handlePeriodChange('30days')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                period === '30days'
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              30 jours
-            </button>
-            <button
-              onClick={() => handlePeriodChange('custom')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                period === 'custom'
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Personnalisé
-            </button>
+      {/* Header avec titre */}
+      <div className="bg-white dark:bg-gray-800 p-4 border-b border-gray-200 dark:border-gray-700 rounded-lg">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              Bienvenue, {user?.firstName} ! 👋
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Voici un aperçu de vos activités de sondage
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Sélecteur de dates personnalisées */}
-      {showCustomDatePicker && period === 'custom' && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Du:
+      {/* Filtres - Style MapView */}
+      <div className="bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 rounded-lg space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          Filtres
+        </h2>
+        
+        {/* Filtre de période */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Période
+            </label>
+            <select
+              value={period}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              <option value="all">Toutes les périodes</option>
+              <option value="today">Aujourd'hui</option>
+              <option value="7days">7 derniers jours</option>
+              <option value="30days">30 derniers jours</option>
+              <option value="custom">Période personnalisée</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Période personnalisée */}
+        {period === 'custom' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date de début
               </label>
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Au:
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Date de fin
               </label>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
+          </div>
+        )}
+
+        {/* Boutons d'action pour période personnalisée */}
+        {period === 'custom' && (
+          <div className="flex gap-2">
             <button
               onClick={handleCustomDateSubmit}
               disabled={!startDate || !endDate}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
             >
               Appliquer
             </button>
@@ -274,13 +251,13 @@ export default function Dashboard() {
                 setStartDate('')
                 setEndDate('')
               }}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
             >
-              Annuler
+              Réinitialiser
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Message d'information pour les agents de terrain sans équipe */}
       {user?.role === 'field_agent' && !user?.teamId && (

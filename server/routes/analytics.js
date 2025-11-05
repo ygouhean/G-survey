@@ -714,6 +714,11 @@ async function getWeeklyActivity(surveyIds) {
 
 // Helper function to get recent activity
 async function getRecentActivity(surveyIds, user) {
+  // Vérifier que surveyIds n'est pas vide
+  if (!surveyIds || surveyIds.length === 0) {
+    return [];
+  }
+
   const recentResponses = await Response.findAll({
     where: {
       surveyId: { [Op.in]: surveyIds }
@@ -723,7 +728,7 @@ async function getRecentActivity(surveyIds, user) {
         model: Survey,
         as: 'survey',
         attributes: ['id', 'title'],
-        required: false // Permet les réponses même si le sondage n'existe plus
+        required: true // Exclure les réponses sans sondage associé
       },
       {
         model: User,
@@ -736,11 +741,13 @@ async function getRecentActivity(surveyIds, user) {
     limit: 10
   });
 
+  // Filtrer pour ne garder que les réponses avec un sondage valide
+  // (même si required: true, on double-vérifie pour sécurité)
   return recentResponses
-    .filter(r => r.survey !== null) // Filtrer les réponses sans sondage
+    .filter(r => r.survey !== null && r.survey !== undefined)
     .map(r => ({
       id: r.id,
-      survey: r.survey ? r.survey.title : 'Sondage supprimé',
+      survey: r.survey.title,
       respondent: r.respondent 
         ? `${r.respondent.firstName} ${r.respondent.lastName}` 
         : 'Anonyme',
