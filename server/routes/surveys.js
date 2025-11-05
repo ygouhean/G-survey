@@ -10,6 +10,9 @@ const { notifySurveyAssignment, notifyTeamJoined, notifySurveyCreated } = requir
 // @access  Private
 router.get('/', protect, async (req, res, next) => {
   try {
+    // Vérifier et fermer automatiquement tous les sondages expirés
+    await Survey.closeExpiredSurveys();
+    
     let whereClause = {};
 
     // Field agents only see assigned surveys
@@ -71,6 +74,9 @@ router.get('/', protect, async (req, res, next) => {
 // @access  Private
 router.get('/:id', protect, canAccessSurvey, async (req, res, next) => {
   try {
+    // Vérifier et fermer automatiquement tous les sondages expirés
+    await Survey.closeExpiredSurveys();
+    
     const survey = await Survey.findByPk(req.params.id, {
       include: [
         {
@@ -83,7 +89,8 @@ router.get('/:id', protect, canAccessSurvey, async (req, res, next) => {
           as: 'assignedTo',
           attributes: ['id', 'firstName', 'lastName', 'email', 'role']
         }
-      ]
+      ],
+      hooks: false // Désactiver les hooks pour éviter la récursion
     });
 
     if (!survey) {
@@ -91,6 +98,14 @@ router.get('/:id', protect, canAccessSurvey, async (req, res, next) => {
         success: false,
         message: 'Sondage non trouvé'
       });
+    }
+
+    // Vérifier et fermer ce sondage spécifique s'il est expiré
+    const wasClosed = await survey.checkAndCloseIfExpired();
+    if (wasClosed) {
+      // Recharger le sondage pour avoir le statut mis à jour
+      await survey.reload();
+      console.log(`✅ Sondage ${survey.id} fermé automatiquement lors de la récupération`);
     }
 
     res.json({
@@ -682,6 +697,22 @@ router.get('/:id/assignable-users', protect, authorize('admin', 'supervisor'), a
     res.json({
       success: true,
       data: users
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   POST /api/surveys/close-expired
+// @desc    Force close all expired surveys (can be called manually or by cron)
+// @access  Private (Admin only)
+router.post('/close-expired', protect, authorize('admin'), async (req, res, next) => {
+  try {
+    const closedCount = await Survey.closeExpiredSurveys();
+    res.json({
+      success: true,
+      message: `${closedCount} sondage(s) fermé(s) automatiquement`,
+      closedCount
     });
   } catch (error) {
     next(error);

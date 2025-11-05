@@ -31,15 +31,29 @@ export default function Dashboard() {
   const [stats, setStats] = useState<any>(null)
   const [recentSurveys, setRecentSurveys] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadDashboardData()
-  }, [])
+  const [period, setPeriod] = useState<string>('all') // 'all', 'today', '7days', '30days', 'custom'
+  const [startDate, setStartDate] = useState<string>('')
+  const [endDate, setEndDate] = useState<string>('')
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false)
 
   const loadDashboardData = async () => {
     try {
+      setLoading(true)
+      
+      // Préparer les paramètres de période
+      let periodParam: string | undefined = undefined
+      let startDateParam: string | undefined = undefined
+      let endDateParam: string | undefined = undefined
+      
+      if (period === 'custom') {
+        startDateParam = startDate
+        endDateParam = endDate
+      } else if (period !== 'all') {
+        periodParam = period
+      }
+      
       const [statsData, surveysData] = await Promise.all([
-        analyticsService.getDashboardStats(),
+        analyticsService.getDashboardStats(periodParam, startDateParam, endDateParam),
         surveyService.getSurveys()
       ])
       
@@ -51,6 +65,28 @@ export default function Dashboard() {
       setLoading(false)
     }
   }
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod)
+    if (newPeriod !== 'custom') {
+      setShowCustomDatePicker(false)
+      setStartDate('')
+      setEndDate('')
+    } else {
+      setShowCustomDatePicker(true)
+    }
+  }
+
+  const handleCustomDateSubmit = () => {
+    if (startDate && endDate) {
+      loadDashboardData()
+    }
+  }
+
+  useEffect(() => {
+    loadDashboardData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period])
 
   if (loading) {
     return <LoadingSpinner fullScreen />
@@ -130,14 +166,121 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          Bienvenue, {user?.firstName} ! 👋
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Voici un aperçu de vos activités de sondage
-        </p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Bienvenue, {user?.firstName} ! 👋
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Voici un aperçu de vos activités de sondage
+          </p>
+        </div>
+        
+        {/* Filtre de période */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+            <button
+              onClick={() => handlePeriodChange('all')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                period === 'all'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Tout
+            </button>
+            <button
+              onClick={() => handlePeriodChange('today')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                period === 'today'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Aujourd'hui
+            </button>
+            <button
+              onClick={() => handlePeriodChange('7days')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                period === '7days'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              7 jours
+            </button>
+            <button
+              onClick={() => handlePeriodChange('30days')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                period === '30days'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              30 jours
+            </button>
+            <button
+              onClick={() => handlePeriodChange('custom')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                period === 'custom'
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Personnalisé
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Sélecteur de dates personnalisées */}
+      {showCustomDatePicker && period === 'custom' && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Du:
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Au:
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              />
+            </div>
+            <button
+              onClick={handleCustomDateSubmit}
+              disabled={!startDate || !endDate}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Appliquer
+            </button>
+            <button
+              onClick={() => {
+                setPeriod('all')
+                setShowCustomDatePicker(false)
+                setStartDate('')
+                setEndDate('')
+              }}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Message d'information pour les agents de terrain sans équipe */}
       {user?.role === 'field_agent' && !user?.teamId && (

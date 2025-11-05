@@ -20,9 +20,18 @@ exports.protect = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      if (!decoded || !decoded.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Token invalide - ID utilisateur manquant'
+        });
+      }
+      
       req.user = await User.findByPk(decoded.id);
       
       if (!req.user) {
+        console.error('❌ Utilisateur non trouvé pour ID:', decoded.id);
         return res.status(401).json({
           success: false,
           message: 'Utilisateur non trouvé'

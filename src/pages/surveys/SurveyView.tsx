@@ -24,6 +24,24 @@ export default function SurveyView() {
     loadData()
   }, [id])
 
+  // Vérifier automatiquement si le sondage est expiré et le recharger
+  useEffect(() => {
+    if (!survey || !survey.endDate || survey.status !== 'active') return;
+
+    const endDate = new Date(survey.endDate);
+    endDate.setHours(23, 59, 59, 999);
+    const isExpired = endDate < new Date();
+
+    if (isExpired) {
+      // Recharger après 1 seconde pour vérifier si le backend a fermé le sondage
+      const timer = setTimeout(() => {
+        loadData();
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [survey?.endDate, survey?.status])
+
   const loadData = async () => {
     try {
       if (!id) {
@@ -46,6 +64,13 @@ export default function SurveyView() {
       if (surveyData && (!surveyData.questions || !Array.isArray(surveyData.questions))) {
         surveyData.questions = []
       }
+      
+      // Vérifier si le sondage a été fermé automatiquement lors du chargement
+      // Si le statut a changé de 'active' à 'closed', recharger les données
+      if (survey && survey.status === 'active' && surveyData.status === 'closed' && surveyData.autoClosedAt) {
+        console.log('✅ Sondage fermé automatiquement - rechargement des données');
+      }
+      
       setSurvey(surveyData)
       setResponses(responsesRes.data || [])
     } catch (error: any) {
@@ -302,7 +327,12 @@ export default function SurveyView() {
       )}
 
       {/* Date de fin dépassée warning */}
-      {survey.endDate && new Date(survey.endDate) < new Date() && survey.status === 'active' && (
+      {survey.endDate && (() => {
+        const endDate = new Date(survey.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        const isExpired = endDate < new Date();
+        return isExpired && survey.status === 'active';
+      })() && (
         <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg p-4">
           <div className="flex gap-3">
             <span className="text-3xl">⚠️</span>
@@ -311,10 +341,10 @@ export default function SurveyView() {
                 Date de fin dépassée
               </h3>
               <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                La date de fin de ce sondage était le <strong>{new Date(survey.endDate).toLocaleDateString('fr-FR')}</strong>. Il devrait être fermé automatiquement.
+                La date de fin de ce sondage était le <strong>{new Date(survey.endDate).toLocaleDateString('fr-FR')}</strong>. Le sondage sera fermé automatiquement...
               </p>
               <p className="text-xs text-red-600 dark:text-red-400 mt-2">
-                💡 Actualisez la page pour appliquer la fermeture automatique.
+                💡 Vérification en cours...
               </p>
             </div>
           </div>

@@ -209,8 +209,22 @@ router.get('/survey/:surveyId', protect, canAccessSurvey, async (req, res, next)
 // @access  Private
 router.get('/dashboard', protect, async (req, res, next) => {
   try {
+    // Vérifier que req.user existe
+    if (!req.user || !req.user.id) {
+      console.error('❌ req.user est null ou undefined dans /dashboard');
+      return res.status(401).json({
+        success: false,
+        message: 'Utilisateur non authentifié'
+      });
+    }
+
+    console.log('📊 Dashboard - User:', req.user.id, 'Role:', req.user.role);
+
     const { SurveyAssignee } = require('../models');
+    const { period, startDate, endDate } = req.query; // Nouveaux paramètres de période
+    
     let surveyWhereClause = {};
+    let dateFilter = {}; // Filtre de date pour les réponses
 
     // Filter surveys based on user role
     if (req.user.role === 'field_agent') {
@@ -246,25 +260,102 @@ router.get('/dashboard', protect, async (req, res, next) => {
     const surveys = await Survey.findAll({ where: surveyWhereClause });
     const surveyIds = surveys.map(s => s.id);
 
+    // Gérer le cas où il n'y a pas de sondages
+    if (surveyIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          totalSurveys: 0,
+          totalResponses: 0,
+          responsesToday: 0,
+          responsesThisWeek: 0,
+          responsesThisMonth: 0,
+          surveysByStatus: { draft: 0, active: 0, paused: 0, closed: 0 },
+          averageNPS: 0,
+          recentActivity: [],
+          weeklyActivity: { labels: [], data: [] },
+          changes: { totalSurveys: 0, totalResponses: 0, responsesToday: 0, averageNPS: 0 }
+        }
+      });
+    }
+
     let responseQuery = { surveyId: { [Op.in]: surveyIds } };
     
-    // Get responses
+    // Appliquer le filtre de période
+    if (period || startDate || endDate) {
+      dateFilter = {};
+      
+      if (startDate && endDate) {
+        // Période personnalisée
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateFilter[Op.gte] = start;
+        dateFilter[Op.lte] = end;
+      } else if (period) {
+        // Période prédéfinie
+        const now = new Date();
+        let start;
+        
+        switch (period) {
+          case 'today':
+            start = new Date(now);
+            start.setHours(0, 0, 0, 0);
+            dateFilter[Op.gte] = start;
+            break;
+          case '7days':
+            start = new Date(now);
+            start.setDate(start.getDate() - 7);
+            start.setHours(0, 0, 0, 0);
+            dateFilter[Op.gte] = start;
+            break;
+          case '30days':
+            start = new Date(now);
+            start.setDate(start.getDate() - 30);
+            start.setHours(0, 0, 0, 0);
+            dateFilter[Op.gte] = start;
+            break;
+          default:
+            // Par défaut, pas de filtre
+            break;
+        }
+      }
+      
+      if (Object.keys(dateFilter).length > 0) {
+        responseQuery.submittedAt = dateFilter;
+      }
+    }
+    
+    // Get responses avec filtre de période
     const allResponses = await Response.findAll({ where: responseQuery });
     
-    // Today's responses
+    // Today's responses (toujours calculé pour comparaison)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayResponses = allResponses.filter(r => r.submittedAt >= today);
+    const todayResponses = allResponses.filter(r => {
+      if (!r.submittedAt) return false;
+      const submittedAt = new Date(r.submittedAt);
+      return submittedAt >= today;
+    });
 
     // This week's responses
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const weekResponses = allResponses.filter(r => r.submittedAt >= weekAgo);
+    const weekResponses = allResponses.filter(r => {
+      if (!r.submittedAt) return false;
+      const submittedAt = new Date(r.submittedAt);
+      return submittedAt >= weekAgo;
+    });
 
     // This month's responses
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
-    const monthResponses = allResponses.filter(r => r.submittedAt >= monthAgo);
+    const monthResponses = allResponses.filter(r => {
+      if (!r.submittedAt) return false;
+      const submittedAt = new Date(r.submittedAt);
+      return submittedAt >= monthAgo;
+    });
 
     // Survey status breakdown
     const surveysByStatus = {
