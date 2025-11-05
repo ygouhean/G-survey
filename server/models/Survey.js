@@ -150,7 +150,7 @@ Survey.closeExpiredSurveys = async function() {
     // car cette méthode est appelée depuis beforeFind
     const expiredSurveys = await Survey.findAll({
       where: {
-        status: 'active',
+        status: { [require('sequelize').Op.in]: ['active', 'paused'] }, // Fermer aussi les sondages en pause
         endDate: {
           [require('sequelize').Op.ne]: null
         }
@@ -169,17 +169,34 @@ Survey.closeExpiredSurveys = async function() {
       return endDateTime < now;
     });
 
-    for (const survey of surveysToClose) {
-      await survey.update({
-        status: 'closed',
-        autoClosedAt: now
+    const { Op } = require('sequelize');
+    
+    // Fermer tous les sondages expirés en une seule requête pour plus d'efficacité
+    if (surveysToClose.length > 0) {
+      const surveyIds = surveysToClose.map(s => s.id);
+      
+      await Survey.update(
+        {
+          status: 'closed',
+          autoClosedAt: now
+        },
+        {
+          where: {
+            id: { [Op.in]: surveyIds }
+          },
+          hooks: false
+        }
+      );
+      
+      console.log(`✅ ${surveysToClose.length} sondage(s) fermé(s) automatiquement (date de fin dépassée)`);
+      surveysToClose.forEach(survey => {
+        console.log(`   - Sondage ${survey.id} (${survey.title})`);
       });
-      console.log(`Sondage ${survey.id} fermé automatiquement (date de fin dépassée)`);
     }
 
     return surveysToClose.length;
   } catch (error) {
-    console.error('Erreur lors de la fermeture automatique des sondages:', error);
+    console.error('❌ Erreur lors de la fermeture automatique des sondages:', error);
     return 0;
   }
 };
@@ -188,7 +205,8 @@ Survey.closeExpiredSurveys = async function() {
 Survey.prototype.checkAndCloseIfExpired = async function() {
   const now = new Date();
   
-  if (this.status === 'active' && this.endDate) {
+  // Vérifier aussi les sondages en pause
+  if ((this.status === 'active' || this.status === 'paused') && this.endDate) {
     // Créer une date à 23:59:59 du jour de fin
     const endDateTime = new Date(this.endDate);
     endDateTime.setHours(23, 59, 59, 999);
@@ -197,7 +215,10 @@ Survey.prototype.checkAndCloseIfExpired = async function() {
       await this.update({
         status: 'closed',
         autoClosedAt: now
+      }, {
+        hooks: false // Désactiver les hooks pour éviter la récursion
       });
+      console.log(`✅ Sondage ${this.id} (${this.title}) fermé automatiquement - date de fin: ${this.endDate}`);
       return true;
     }
   }

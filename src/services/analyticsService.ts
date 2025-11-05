@@ -12,8 +12,13 @@ class AnalyticsService {
     return response.data
   }
 
-  async getDashboardStats() {
-    const response = await api.get('/analytics/dashboard')
+  async getDashboardStats(period?: string, startDate?: string, endDate?: string) {
+    const params: any = {}
+    if (period) params.period = period
+    if (startDate) params.startDate = startDate
+    if (endDate) params.endDate = endDate
+    
+    const response = await api.get('/analytics/dashboard', { params })
     return response.data
   }
 
