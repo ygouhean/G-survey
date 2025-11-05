@@ -227,7 +227,7 @@ function SortableQuestion({ question, onUpdate, onDelete }: any) {
             type="text"
             value={question.placeholder || ''}
             onChange={(e) => onUpdate({ ...question, placeholder: e.target.value })}
-            placeholder="Placeholder..."
+            placeholder="Ex: Entrez un texte..."
             className="input"
           />
         </div>
