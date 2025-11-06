@@ -175,7 +175,7 @@ Survey.closeExpiredSurveys = async function() {
     if (surveysToClose.length > 0) {
       const surveyIds = surveysToClose.map(s => s.id);
       
-      await Survey.update(
+      const updateResult = await Survey.update(
         {
           status: 'closed',
           autoClosedAt: now
@@ -188,15 +188,28 @@ Survey.closeExpiredSurveys = async function() {
         }
       );
       
-      console.log(`✅ ${surveysToClose.length} sondage(s) fermé(s) automatiquement (date de fin dépassée)`);
+      const closedCount = updateResult[0]; // Nombre de lignes affectées
+      
+      console.log(`✅ ${closedCount} sondage(s) fermé(s) automatiquement (date de fin dépassée)`);
       surveysToClose.forEach(survey => {
-        console.log(`   - Sondage ${survey.id} (${survey.title})`);
+        const endDateTime = new Date(survey.endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        const expiredMinutes = Math.floor((now.getTime() - endDateTime.getTime()) / (1000 * 60));
+        console.log(`   - Sondage ${survey.id} (${survey.title}) - Expiré depuis ${expiredMinutes} minutes`);
       });
+      
+      // Alerte si le nombre de sondages fermés ne correspond pas au nombre attendu
+      if (closedCount !== surveysToClose.length) {
+        console.warn(`⚠️ ATTENTION: ${surveysToClose.length} sondages devaient être fermés mais seulement ${closedCount} l'ont été`);
+      }
+      
+      return closedCount;
     }
 
-    return surveysToClose.length;
+    return 0;
   } catch (error) {
     console.error('❌ Erreur lors de la fermeture automatique des sondages:', error);
+    console.error('   Stack trace:', error.stack);
     return 0;
   }
 };

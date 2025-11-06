@@ -26,21 +26,35 @@ export default function SurveyView() {
 
   // Vérifier automatiquement si le sondage est expiré et le recharger
   useEffect(() => {
-    if (!survey || !survey.endDate || survey.status !== 'active') return;
+    if (!survey || !survey.endDate || (survey.status !== 'active' && survey.status !== 'paused')) return;
 
     const endDate = new Date(survey.endDate);
     endDate.setHours(23, 59, 59, 999);
-    const isExpired = endDate < new Date();
+    const now = new Date();
+    const isExpired = endDate < now;
 
     if (isExpired) {
-      // Recharger après 1 seconde pour vérifier si le backend a fermé le sondage
-      const timer = setTimeout(() => {
+      // Recharger immédiatement puis après 2 secondes, puis toutes les 5 secondes
+      const immediateTimer = setTimeout(() => {
         loadData();
-      }, 1000);
+      }, 500);
 
-      return () => clearTimeout(timer);
+      const retryTimer = setTimeout(() => {
+        loadData();
+      }, 2000);
+
+      // Si toujours expiré après 10 secondes, vérifier périodiquement
+      const periodicTimer = setInterval(() => {
+        loadData();
+      }, 5000);
+
+      return () => {
+        clearTimeout(immediateTimer);
+        clearTimeout(retryTimer);
+        clearInterval(periodicTimer);
+      };
     }
-  }, [survey?.endDate, survey?.status])
+  }, [survey?.endDate, survey?.status, id])
 
   const loadData = async () => {
     try {
@@ -326,12 +340,19 @@ export default function SurveyView() {
         </div>
       )}
 
-      {/* Date de fin dépassée warning */}
+      {/* Date de fin dépassée warning - Alerte si fermeture automatique n'a pas fonctionné */}
       {survey.endDate && (() => {
         const endDate = new Date(survey.endDate);
         endDate.setHours(23, 59, 59, 999);
-        const isExpired = endDate < new Date();
-        return isExpired && survey.status === 'active';
+        const now = new Date();
+        const isExpired = endDate < now;
+        const shouldBeClosed = isExpired && (survey.status === 'active' || survey.status === 'paused');
+        
+        // Si le sondage est expiré depuis plus de 1 minute et toujours actif, alerter
+        const expiredMinutes = (now.getTime() - endDate.getTime()) / (1000 * 60);
+        const needsManualClose = shouldBeClosed && expiredMinutes > 1;
+        
+        return shouldBeClosed;
       })() && (
         <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg p-4">
           <div className="flex gap-3">
@@ -341,11 +362,52 @@ export default function SurveyView() {
                 Date de fin dépassée
               </h3>
               <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                La date de fin de ce sondage était le <strong>{new Date(survey.endDate).toLocaleDateString('fr-FR')}</strong>. Le sondage sera fermé automatiquement...
+                La date de fin de ce sondage était le <strong>{new Date(survey.endDate).toLocaleDateString('fr-FR')} à 23:59:59</strong>.
               </p>
-              <p className="text-xs text-red-600 dark:text-red-400 mt-2">
-                💡 Vérification en cours...
-              </p>
+              {(() => {
+                const endDate = new Date(survey.endDate);
+                endDate.setHours(23, 59, 59, 999);
+                const now = new Date();
+                const expiredMinutes = Math.floor((now.getTime() - endDate.getTime()) / (1000 * 60));
+                const expiredHours = Math.floor(expiredMinutes / 60);
+                const expiredDays = Math.floor(expiredHours / 24);
+                
+                if (expiredMinutes > 1) {
+                  return (
+                    <>
+                      <div className="bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-600 rounded-lg p-3 mt-3">
+                        <p className="text-sm font-bold text-red-900 dark:text-red-100 mb-2">
+                          ⚠️ ALERTE : Fermeture automatique non effectuée
+                        </p>
+                        <p className="text-xs text-red-800 dark:text-red-200 mb-2">
+                          Ce sondage aurait dû être fermé automatiquement il y a {
+                            expiredDays > 0 ? `${expiredDays} jour(s)` :
+                            expiredHours > 0 ? `${expiredHours} heure(s)` :
+                            `${expiredMinutes} minute(s)`
+                          }.
+                        </p>
+                        <p className="text-xs text-red-700 dark:text-red-300">
+                          Le système de fermeture automatique n'a pas fonctionné. Veuillez fermer manuellement ce sondage.
+                        </p>
+                      </div>
+                      {(user?.role === 'admin' || user?.role === 'supervisor') && (
+                        <button
+                          onClick={() => handleStatusChange('closed')}
+                          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                        >
+                          🔒 Fermer ce sondage maintenant
+                        </button>
+                      )}
+                    </>
+                  );
+                } else {
+                  return (
+                    <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                      💡 Vérification automatique en cours... Le sondage sera fermé dans quelques instants.
+                    </p>
+                  );
+                }
+              })()}
             </div>
           </div>
         </div>

@@ -269,6 +269,18 @@ export default function SurveyList() {
 
   const counts = getCounts()
 
+  // Détecter les sondages expirés qui devraient être fermés
+  const expiredSurveys = surveys.filter(survey => {
+    if (!survey.endDate) return false
+    if (survey.status === 'closed') return false
+    
+    const endDate = new Date(survey.endDate)
+    endDate.setHours(23, 59, 59, 999)
+    const isExpired = endDate < new Date()
+    
+    return isExpired && (survey.status === 'active' || survey.status === 'paused')
+  })
+
   if (loading) {
     return <LoadingSpinner fullScreen />
   }
@@ -292,6 +304,59 @@ export default function SurveyList() {
           </Link>
         )}
       </div>
+
+      {/* Alerte globale pour sondages expirés */}
+      {expiredSurveys.length > 0 && (
+        <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg p-4">
+          <div className="flex gap-3">
+            <span className="text-3xl">⚠️</span>
+            <div className="flex-1">
+              <h3 className="font-bold text-red-800 dark:text-red-200 text-lg">
+                {expiredSurveys.length} sondage(s) expiré(s) non fermé(s) automatiquement
+              </h3>
+              <p className="text-sm text-red-700 dark:text-red-300 mt-1 mb-2">
+                Les sondages suivants ont dépassé leur date de fin mais n'ont pas été fermés automatiquement :
+              </p>
+              <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300 space-y-1 mb-3">
+                {expiredSurveys.slice(0, 5).map(survey => {
+                  const endDate = new Date(survey.endDate)
+                  endDate.setHours(23, 59, 59, 999)
+                  const expiredMinutes = Math.floor((new Date().getTime() - endDate.getTime()) / (1000 * 60))
+                  const expiredHours = Math.floor(expiredMinutes / 60)
+                  const expiredDays = Math.floor(expiredHours / 24)
+                  
+                  return (
+                    <li key={survey.id}>
+                      <Link 
+                        to={`/surveys/${survey.id}`}
+                        className="hover:underline font-medium"
+                      >
+                        {survey.title}
+                      </Link>
+                      {' '}
+                      <span className="text-xs">
+                        (expiré il y a {
+                          expiredDays > 0 ? `${expiredDays} jour(s)` :
+                          expiredHours > 0 ? `${expiredHours} heure(s)` :
+                          `${expiredMinutes} minute(s)`
+                        })
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+              {expiredSurveys.length > 5 && (
+                <p className="text-xs text-red-600 dark:text-red-400">
+                  ... et {expiredSurveys.length - 5} autre(s) sondage(s)
+                </p>
+              )}
+              <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                💡 Cliquez sur un sondage pour le fermer manuellement ou actualisez la page pour forcer la vérification automatique.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="space-y-4">
@@ -521,17 +586,33 @@ export default function SurveyList() {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`badge ${
-                        survey.status === 'active' ? 'badge-success' :
-                        survey.status === 'draft' ? 'badge-info' :
-                        survey.status === 'paused' ? 'badge-warning' :
-                        'badge-danger'
-                      }`}>
-                        {survey.status === 'active' ? 'Actif' :
-                         survey.status === 'draft' ? 'Brouillon' :
-                         survey.status === 'paused' ? 'Pause' :
-                         'Fermé'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`badge ${
+                          survey.status === 'active' ? 'badge-success' :
+                          survey.status === 'draft' ? 'badge-info' :
+                          survey.status === 'paused' ? 'badge-warning' :
+                          'badge-danger'
+                        }`}>
+                          {survey.status === 'active' ? 'Actif' :
+                           survey.status === 'draft' ? 'Brouillon' :
+                           survey.status === 'paused' ? 'Pause' :
+                           'Fermé'}
+                        </span>
+                        {/* Alerte si sondage expiré mais toujours actif */}
+                        {survey.endDate && (() => {
+                          const endDate = new Date(survey.endDate);
+                          endDate.setHours(23, 59, 59, 999);
+                          const isExpired = endDate < new Date();
+                          return isExpired && (survey.status === 'active' || survey.status === 'paused');
+                        })() && (
+                          <span 
+                            className="text-red-600 dark:text-red-400 text-sm font-bold cursor-help" 
+                            title="⚠️ Ce sondage devrait être fermé automatiquement - Date de fin dépassée"
+                          >
+                            ⚠️
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                       {survey.startDate && survey.endDate ? (
